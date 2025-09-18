@@ -4,6 +4,33 @@
 
 This document provides detailed API documentation for the 2D Brawler Engine. The engine is built using Rust and follows modern game development patterns with an Entity-Component-System (ECS) architecture.
 
+**Current Status:** Phase 1 Complete ✅ | Phase 2 Active 🚀
+
+## Development Status
+
+### Phase 1: Foundation (Complete ✅)
+- **Engine Architecture** - Modular system design with ECS
+- **Core Systems** - Basic implementations of all major systems
+- **Game Components** - Component definitions for game logic
+- **Platform Support** - Cross-platform compatibility
+
+### Phase 2: Feature Implementation (Active 🚀)
+- **Real Rendering** - Actual WGPU sprite rendering
+- **Functional ECS** - Fix borrowing issues and system execution
+- **Input Processing** - Connect input to game actions
+- **Physics Simulation** - Implement actual physics with collision
+- **Audio Playback** - Load and play actual sound files
+- **Asset Loading** - Implement file loading and texture display
+- **Game Logic** - Character movement and basic combat
+- **Scene Management** - Real scene loading and transitions
+
+## API Status Legend
+
+- ✅ **Implemented** - Fully functional in Phase 1
+- 🔄 **Placeholder** - Basic implementation, needs Phase 2 work
+- 🚧 **In Progress** - Currently being implemented in Phase 2
+- 📋 **Planned** - Scheduled for future phases
+
 ## Core Engine
 
 ### Engine
