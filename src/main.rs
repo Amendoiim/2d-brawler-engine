@@ -16,7 +16,7 @@ mod game;
 mod platform;
 
 use engine::Engine;
-use game::{Position, Velocity, Sprite, MovementSystem};
+use game::{Position, Velocity, Sprite, MovementSystem, InputMovementSystem};
 
 /// Main application entry point
 fn main() -> Result<()> {
@@ -94,8 +94,9 @@ fn create_test_scene(engine: &mut Engine) {
         visible: true,
     });
     
-    // Add movement system
+    // Add movement systems
     engine.ecs_mut().add_system(MovementSystem);
+    engine.ecs_mut().add_system(InputMovementSystem::new());
     
     info!("Created test scene with entity {}", entity);
 }

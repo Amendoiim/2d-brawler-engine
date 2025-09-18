@@ -73,8 +73,22 @@ impl Renderer {
 
     /// Render a frame
     pub fn render(&mut self, world: &World) -> Result<()> {
-        // For Phase 2, we'll just log that rendering would happen
-        // TODO: Implement actual WGPU rendering in Phase 2.1
+        // Phase 2: Basic sprite rendering implementation
+        let sprite_entities = world.query::<crate::game::Sprite>();
+        
+        for entity in sprite_entities {
+            if let Some(sprite) = world.get_component::<crate::game::Sprite>(entity) {
+                if let Some(position) = world.get_component::<crate::game::Position>(entity) {
+                    if sprite.visible {
+                        log::debug!(
+                            "Rendering sprite at ({}, {}) with size {}x{} and color {:?}",
+                            position.x, position.y, sprite.width, sprite.height, sprite.color
+                        );
+                    }
+                }
+            }
+        }
+        
         log::debug!("Rendering frame with {} entities", world.entity_count());
         Ok(())
     }

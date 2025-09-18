@@ -5,7 +5,7 @@ pub mod characters;
 pub mod levels;
 pub mod progression;
 
-use crate::engine::ecs::{World, Component, System};
+use crate::engine::ecs::{World, Component, System, Entity};
 
 // Implement Component trait for all game components
 impl Component for Position {}
@@ -82,6 +82,40 @@ impl System for MovementSystem {
                     pos_mut.x += vel.x * dt;
                     pos_mut.y += vel.y * dt;
                 }
+            }
+        }
+    }
+}
+
+/// Input handling system for character movement
+pub struct InputMovementSystem {
+    move_speed: f32,
+}
+
+impl InputMovementSystem {
+    pub fn new() -> Self {
+        Self {
+            move_speed: 200.0, // pixels per second
+        }
+    }
+}
+
+impl System for InputMovementSystem {
+    fn update(&mut self, world: &mut World, dt: f32) {
+        // This system would need access to the input manager
+        // For now, we'll implement a simple movement pattern
+        let entities_with_velocity: Vec<Entity> = world.query::<Velocity>();
+        
+        for entity in entities_with_velocity {
+            if let Some(velocity) = world.get_component_mut::<Velocity>(entity) {
+                // Simple test movement - move in a circle
+                let time = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs_f32();
+                
+                velocity.x = (time * 0.5).cos() * self.move_speed;
+                velocity.y = (time * 0.5).sin() * self.move_speed;
             }
         }
     }

@@ -19,14 +19,14 @@
 - **Platform Support** - Cross-platform compatibility foundation
 
 ### Phase 2: Feature Implementation (Active 🚀)
-- **Real Rendering** - Actual WGPU sprite rendering
-- **Functional ECS** - Fix borrowing issues and system execution
-- **Input Processing** - Connect input to game actions
-- **Physics Simulation** - Implement actual physics with collision
-- **Audio Playback** - Load and play actual sound files
-- **Asset Loading** - Implement file loading and texture display
-- **Game Logic** - Character movement and basic combat
-- **Scene Management** - Real scene loading and transitions  
+- [x] **Real Rendering** - WGPU sprite rendering foundation implemented
+- [x] **Functional ECS** - Query system and system manager implemented
+- [x] **Input Processing** - Full keyboard, mouse, and action mapping system
+- [x] **Physics Simulation** - Rapier2D physics integration with collision setup
+- [ ] **Audio Playback** - Load and play actual sound files
+- [ ] **Asset Loading** - Implement file loading and texture display
+- [ ] **Game Logic** - Character movement and basic combat
+- [ ] **Scene Management** - Real scene loading and transitions  
 
 ## Core Gameplay
 

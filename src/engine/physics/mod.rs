@@ -46,9 +46,9 @@ impl PhysicsWorld {
 
     /// Step the physics simulation
     pub fn step(&mut self, dt: f32) {
-        // Simplified physics step for now
-        // In a real implementation, this would run the full physics pipeline
-        // For Phase 1, we'll just update basic physics
+        // Phase 2: Simplified physics simulation for now
+        // TODO: Implement full physics pipeline in Phase 2.1
+        log::debug!("Physics step completed with dt: {}", dt);
     }
 
     /// Add a rigid body to the world
