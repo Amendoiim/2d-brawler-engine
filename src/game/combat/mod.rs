@@ -2,8 +2,11 @@
 
 use crate::engine::ecs::{Component, System, World};
 
+// Implement Component trait for combat components
+impl Component for Combat {}
+impl Component for Attack {}
+
 /// Combat component for entities that can fight
-#[derive(Component)]
 pub struct Combat {
     pub attack_power: f32,
     pub attack_range: f32,
@@ -12,7 +15,6 @@ pub struct Combat {
 }
 
 /// Attack component for active attacks
-#[derive(Component)]
 pub struct Attack {
     pub damage: f32,
     pub duration: f32,

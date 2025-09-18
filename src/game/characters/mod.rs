@@ -2,8 +2,12 @@
 
 use crate::engine::ecs::{Component, System, World};
 
+// Implement Component trait for character components
+impl Component for Character {}
+impl Component for CharacterStats {}
+impl Component for CharacterAbilities {}
+
 /// Character component for player and NPC characters
-#[derive(Component)]
 pub struct Character {
     pub name: String,
     pub character_class: CharacterClass,
@@ -21,7 +25,6 @@ pub enum CharacterClass {
 }
 
 /// Character stats component
-#[derive(Component)]
 pub struct CharacterStats {
     pub strength: f32,
     pub agility: f32,
@@ -30,7 +33,6 @@ pub struct CharacterStats {
 }
 
 /// Character abilities component
-#[derive(Component)]
 pub struct CharacterAbilities {
     pub abilities: Vec<Ability>,
     pub skill_points: u32,

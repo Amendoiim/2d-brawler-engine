@@ -16,6 +16,7 @@ mod game;
 mod platform;
 
 use engine::Engine;
+use game::{Position, Velocity, Sprite, MovementSystem};
 
 /// Main application entry point
 fn main() -> Result<()> {
@@ -38,6 +39,9 @@ fn main() -> Result<()> {
 
     // Initialize engine
     let mut engine = Engine::new(window)?;
+    
+    // Create test scene
+    create_test_scene(&mut engine);
 
     // Run main game loop
     event_loop.run(move |event, elwt| {
@@ -73,4 +77,25 @@ fn main() -> Result<()> {
     })?;
 
     Ok(())
+}
+
+/// Create a test scene with some basic entities
+fn create_test_scene(engine: &mut Engine) {
+    // Create a test entity with position, velocity, and sprite
+    let entity = engine.ecs_mut().create_entity();
+    
+    engine.ecs_mut().add_component(entity, Position { x: 100.0, y: 100.0 });
+    engine.ecs_mut().add_component(entity, Velocity { x: 50.0, y: 25.0 });
+    engine.ecs_mut().add_component(entity, Sprite {
+        texture_id: 0,
+        width: 32.0,
+        height: 32.0,
+        color: [1.0, 0.0, 0.0, 1.0], // Red
+        visible: true,
+    });
+    
+    // Add movement system
+    engine.ecs_mut().add_system(MovementSystem);
+    
+    info!("Created test scene with entity {}", entity);
 }

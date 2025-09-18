@@ -7,6 +7,12 @@ pub mod progression;
 
 use crate::engine::ecs::{World, Component, System};
 
+// Implement Component trait for all game components
+impl Component for Position {}
+impl Component for Velocity {}
+impl Component for Sprite {}
+impl Component for Health {}
+
 /// Game state management
 pub struct GameState {
     current_level: String,
@@ -33,29 +39,28 @@ impl GameState {
 }
 
 /// Position component for entities
-#[derive(Component)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
 }
 
 /// Velocity component for entities
-#[derive(Component)]
+#[derive(Clone)]
 pub struct Velocity {
     pub x: f32,
     pub y: f32,
 }
 
 /// Sprite component for rendering
-#[derive(Component)]
 pub struct Sprite {
     pub texture_id: u32,
     pub width: f32,
     pub height: f32,
+    pub color: [f32; 4], // RGBA
+    pub visible: bool,
 }
 
 /// Health component for entities
-#[derive(Component)]
 pub struct Health {
     pub current: f32,
     pub maximum: f32,
@@ -66,7 +71,18 @@ pub struct MovementSystem;
 
 impl System for MovementSystem {
     fn update(&mut self, world: &mut World, dt: f32) {
-        // This would need to be implemented based on your ECS query system
-        // For now, this is a placeholder
+        // Get all entities with Position component
+        let position_entities = world.query::<Position>();
+        
+        for entity in position_entities {
+            // Get velocity and position separately to avoid borrowing conflicts
+            let velocity = world.get_component::<Velocity>(entity).cloned();
+            if let Some(vel) = velocity {
+                if let Some(pos_mut) = world.get_component_mut::<Position>(entity) {
+                    pos_mut.x += vel.x * dt;
+                    pos_mut.y += vel.y * dt;
+                }
+            }
+        }
     }
 }

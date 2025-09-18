@@ -34,7 +34,7 @@ impl AudioEngine {
     /// Play a sound effect
     pub fn play_sound(&self, name: &str) -> Result<()> {
         if let Some(sound_data) = self.sounds.get(name) {
-            let cursor = std::io::Cursor::new(sound_data);
+            let cursor = std::io::Cursor::new(sound_data.clone());
             let source = Decoder::new(cursor)?;
             self.sink.append(source);
         }
@@ -44,7 +44,7 @@ impl AudioEngine {
     /// Play background music
     pub fn play_music(&self, name: &str) -> Result<()> {
         if let Some(sound_data) = self.sounds.get(name) {
-            let cursor = std::io::Cursor::new(sound_data);
+            let cursor = std::io::Cursor::new(sound_data.clone());
             let source = Decoder::new(cursor)?;
             self.sink.append(source);
         }

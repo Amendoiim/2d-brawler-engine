@@ -2,8 +2,10 @@
 
 use crate::engine::ecs::{Component, System, World};
 
+// Implement Component trait for level components
+impl Component for Level {}
+
 /// Level component for level entities
-#[derive(Component)]
 pub struct Level {
     pub name: String,
     pub width: f32,

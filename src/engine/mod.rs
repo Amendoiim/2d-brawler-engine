@@ -74,6 +74,9 @@ impl Engine {
 
     /// Main render function
     pub fn render(&mut self) -> Result<()> {
+        // Update timing
+        self.platform.update_timing();
+        
         // Update systems
         self.update()?;
         
@@ -81,6 +84,11 @@ impl Engine {
         self.renderer.render(&self.ecs)?;
         
         Ok(())
+    }
+
+    /// Get mutable reference to ECS world
+    pub fn ecs_mut(&mut self) -> &mut ecs::World {
+        &mut self.ecs
     }
 
     /// Update all engine systems

@@ -2,7 +2,7 @@
 
 ## Game Overview
 
-**Title:** [To be determined]  
+**Title:** Project Revolution
 **Genre:** 2D Brawler / Beat 'em up with Rogue-like elements  
 **Platforms:** macOS, Windows, Xbox, PlayStation 5, Nintendo Switch 2  
 **Target Audience:** Fans of Streets of Rage, Final Fight, and modern rogue-like games  
@@ -16,7 +16,7 @@
 - **Fast-Paced Action:** Responsive, frame-perfect combat
 - **Combo System:** Chain attacks for increased damage and style
 - **Special Moves:** Unique abilities for each character
-- **Environmental Interaction:** Use objects as weapons
+- **Environmental Interaction:** Use objects as weapons and scenario can also be broken, similar to classic brawlers
 - **Cooperative Combat:** Team-up moves and combos
 
 #### Character Progression

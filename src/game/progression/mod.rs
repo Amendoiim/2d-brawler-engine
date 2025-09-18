@@ -2,8 +2,12 @@
 
 use crate::engine::ecs::{Component, System, World};
 
+// Implement Component trait for progression components
+impl Component for Experience {}
+impl Component for Skill {}
+impl Component for Equipment {}
+
 /// Experience component for entities that can gain XP
-#[derive(Component)]
 pub struct Experience {
     pub current: u32,
     pub total: u32,
@@ -11,7 +15,6 @@ pub struct Experience {
 }
 
 /// Skill component for character abilities
-#[derive(Component)]
 pub struct Skill {
     pub name: String,
     pub level: u32,
@@ -20,7 +23,6 @@ pub struct Skill {
 }
 
 /// Equipment component for wearable items
-#[derive(Component)]
 pub struct Equipment {
     pub weapon: Option<Weapon>,
     pub armor: Option<Armor>,
