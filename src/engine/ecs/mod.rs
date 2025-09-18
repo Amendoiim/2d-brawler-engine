@@ -196,6 +196,11 @@ impl World {
     pub fn system_manager_mut(&mut self) -> &mut system_manager::SystemManager {
         &mut self.system_manager
     }
+    
+    /// Get the number of entities in the world
+    pub fn entity_count(&self) -> usize {
+        self.entities.len()
+    }
 }
 
 impl Default for World {

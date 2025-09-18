@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use winit::dpi::PhysicalSize;
+use winit::window::Window;
 use glam::Mat4;
 
 use crate::engine::ecs::World;
@@ -9,10 +10,16 @@ use crate::platform::Platform;
 
 pub mod sprite;
 
-/// 2D renderer (simplified for Phase 1)
+/// 2D renderer with WGPU integration (Phase 2 placeholder)
 pub struct Renderer {
     size: PhysicalSize<u32>,
     camera: Camera,
+    // WGPU resources will be added in Phase 2.1
+    // surface: wgpu::Surface,
+    // device: wgpu::Device,
+    // queue: wgpu::Queue,
+    // config: wgpu::SurfaceConfiguration,
+    // sprite_renderer: sprite::SpriteRenderer,
 }
 
 /// Simple 2D camera
@@ -42,13 +49,13 @@ impl Camera {
 }
 
 impl Renderer {
-    /// Create a new renderer
+    /// Create a new renderer with WGPU integration
     pub fn new(platform: &Platform) -> Result<Self> {
         let window = platform.window();
         let size = window.inner_size();
 
-        // For Phase 1, we'll create a simplified renderer
-        // TODO: Implement proper WGPU integration in Phase 2
+        // For Phase 2, we'll create a simplified renderer that compiles
+        // TODO: Implement full WGPU integration in Phase 2.1
         let camera = Camera::new();
 
         Ok(Self {
@@ -66,9 +73,9 @@ impl Renderer {
 
     /// Render a frame
     pub fn render(&mut self, world: &World) -> Result<()> {
-        // For Phase 1, we'll just log that rendering would happen
-        // TODO: Implement actual rendering in Phase 2
-        log::debug!("Rendering frame");
+        // For Phase 2, we'll just log that rendering would happen
+        // TODO: Implement actual WGPU rendering in Phase 2.1
+        log::debug!("Rendering frame with {} entities", world.entity_count());
         Ok(())
     }
 }

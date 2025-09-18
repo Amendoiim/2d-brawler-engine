@@ -186,16 +186,22 @@ impl SpriteRenderer {
 
     /// Render all sprites in the world
     pub fn render_sprites(
-        &mut self,
-        _device: &wgpu::Device,
-        _queue: &wgpu::Queue,
+        &self,
         _render_pass: &mut wgpu::RenderPass,
-        _world: &World,
-        _view_proj: glam::Mat4,
-    ) -> Result<()> {
-        // For Phase 1, we'll just log that sprites would be rendered
-        // TODO: Implement actual sprite rendering in Phase 2
-        log::debug!("Rendering sprites");
-        Ok(())
+        world: &World,
+        _camera: &crate::engine::renderer::Camera,
+    ) {
+        // For Phase 2, we'll just log that sprites would be rendered
+        // TODO: Implement actual sprite rendering in Phase 2.1
+        let sprite_entities = world.query::<GameSprite>();
+        log::debug!("Rendering {} sprites", sprite_entities.len());
+        
+        for entity in sprite_entities {
+            if let Some(sprite) = world.get_component::<GameSprite>(entity) {
+                if sprite.visible {
+                    log::debug!("Sprite {} is visible", entity);
+                }
+            }
+        }
     }
 }

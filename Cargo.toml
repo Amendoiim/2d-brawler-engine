@@ -15,6 +15,7 @@ winit = "0.29"
 wgpu = "0.17"
 pollster = "0.3"
 bytemuck = { version = "1.14", features = ["derive"] }
+raw-window-handle = "0.5"
 
 # Math and utilities
 glam = "0.24"
