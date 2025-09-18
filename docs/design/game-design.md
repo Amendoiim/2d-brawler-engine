@@ -20,7 +20,7 @@
 - **Cooperative Combat:** Team-up moves and combos
 
 #### Character Progression
-- **RPG Elements:** Level up characters and unlock new abilities
+- **RPG Elements:** Level up characters and unlock new abilities, they also change their appearance as they become stronger
 - **Skill Trees:** Multiple paths for character customization
 - **Equipment System:** Weapons and gear that affect gameplay
 - **Character Classes:** Different playstyles and abilities
