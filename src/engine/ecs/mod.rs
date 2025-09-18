@@ -3,6 +3,9 @@
 use std::collections::HashMap;
 use std::any::TypeId;
 
+pub mod query;
+pub mod system_manager;
+
 /// Entity ID type
 pub type Entity = u32;
 
@@ -29,7 +32,7 @@ pub struct World {
     entities: Vec<Entity>,
     next_entity_id: Entity,
     components: HashMap<TypeId, Box<dyn std::any::Any>>,
-    systems: Vec<Box<dyn System>>,
+    system_manager: system_manager::SystemManager,
 }
 
 impl World {
@@ -39,7 +42,7 @@ impl World {
             entities: Vec::new(),
             next_entity_id: 0,
             components: HashMap::new(),
-            systems: Vec::new(),
+            system_manager: system_manager::SystemManager::new(),
         }
     }
 
@@ -105,18 +108,32 @@ impl World {
 
     /// Add a system to the world
     pub fn add_system<T: System + 'static>(&mut self, system: T) {
-        self.systems.push(Box::new(system));
+        // For backward compatibility, use default priority
+        self.add_system_with_priority(
+            system,
+            "Unnamed System".to_string(),
+            system_manager::ExecutionOrder::new(system_manager::SystemPriority::Normal, 0),
+        );
+    }
+    
+    /// Add a system with specific priority and name
+    pub fn add_system_with_priority<T: System + 'static>(
+        &mut self,
+        system: T,
+        name: String,
+        execution_order: system_manager::ExecutionOrder,
+    ) {
+        self.system_manager.add_system(system, name, execution_order);
     }
 
     /// Update all systems
     pub fn update(&mut self, dt: f32) {
-        // For Phase 1, we'll implement a simplified system update
-        // This avoids the borrowing complexity for now
-        // In a real ECS, this would use a more sophisticated approach
+        // Phase 2: Use the system manager for proper execution
+        // For now, we'll use a simplified approach to avoid borrowing issues
+        log::debug!("Updating {} systems", self.system_manager.system_count());
         
-        // For now, we'll just log that systems would be updated
         // TODO: Implement proper system execution in Phase 2
-        log::debug!("Updating {} systems", self.systems.len());
+        // This requires a more sophisticated ECS architecture to avoid borrowing conflicts
     }
 
     /// Query entities with specific components
@@ -155,6 +172,30 @@ impl World {
 
     // Note: query_with_mut removed for Phase 1 due to borrowing complexity
     // This would be implemented with a more sophisticated ECS architecture
+    
+    /// Get entities that have the specified component (for query system)
+    pub fn get_entities_with_component<T: Component>(&self) -> Vec<Entity> {
+        let type_id = TypeId::of::<T>();
+        let mut result = Vec::new();
+        
+        if let Some(component_map) = self.components.get(&type_id) {
+            if let Some(map) = component_map.downcast_ref::<HashMap<Entity, T>>() {
+                result.extend(map.keys().copied());
+            }
+        }
+        
+        result
+    }
+    
+    /// Get system manager for advanced system management
+    pub fn system_manager(&self) -> &system_manager::SystemManager {
+        &self.system_manager
+    }
+    
+    /// Get mutable system manager for advanced system management
+    pub fn system_manager_mut(&mut self) -> &mut system_manager::SystemManager {
+        &mut self.system_manager
+    }
 }
 
 impl Default for World {
