@@ -1,0 +1,33 @@
+# Rust
+target/
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Game assets (if not committed)
+assets/
+*.png
+*.jpg
+*.jpeg
+*.ogg
+*.wav
+*.mp3
+
+# Build artifacts
+dist/
+build/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

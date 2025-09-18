@@ -1,0 +1,68 @@
+[package]
+name = "2d-brawler-engine"
+version = "0.1.0"
+edition = "2021"
+authors = ["Marcelo Martins Vieira Rocha"]
+description = "A custom 2D brawler engine inspired by Streets of Rage 4"
+license = "MIT"
+repository = "https://github.com/yourusername/2d-brawler-engine"
+keywords = ["game", "engine", "2d", "brawler", "rust"]
+categories = ["game-development", "graphics"]
+
+[dependencies]
+# Core engine dependencies
+winit = "0.29"
+wgpu = "0.18"
+pollster = "0.3"
+bytemuck = { version = "1.14", features = ["derive"] }
+
+# Math and utilities
+glam = "0.24"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+anyhow = "1.0"
+thiserror = "1.0"
+log = "0.4"
+env_logger = "0.10"
+
+# Audio
+rodio = "0.19"
+cpal = "0.15"
+
+# Input handling
+gilrs = "0.10"
+keyboard-types = "0.7"
+
+# Networking
+quinn = "0.10"
+tokio = { version = "1.0", features = ["full"] }
+tokio-tungstenite = "0.21"
+
+# ECS and game systems
+hecs = "0.10"
+specs = "0.18"
+
+# Physics
+rapier2d = "0.17"
+
+# Image loading
+image = "0.24"
+png = "0.17"
+
+# Configuration
+toml = "0.8"
+clap = { version = "4.4", features = ["derive"] }
+
+# Development dependencies
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.4"
+
+[[bench]]
+name = "rendering_bench"
+harness = false
+
+[[bench]]
+name = "physics_bench"
+harness = false
