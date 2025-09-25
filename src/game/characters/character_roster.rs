@@ -37,7 +37,7 @@ pub struct CharacterTemplate {
     pub starting_appearance: CharacterAppearance,
     /// Starting abilities
     pub starting_abilities: Vec<String>,
-    /// Starting equipment
+    /// Starting equipment (legacy)
     pub starting_equipment: CharacterEquipment,
     /// Description
     pub description: String,
@@ -526,13 +526,13 @@ impl CharacterRoster {
     }
 
     /// Create a character from a template
-    pub fn create_character_from_template(&self, template_id: &str, name: String) -> Result<Character, String> {
+    pub fn create_character_from_template(&self, template_id: &str, name: String, item_manager: &crate::game::items::ItemManager) -> Result<Character, String> {
         let template = self.templates.get(template_id)
             .ok_or_else(|| format!("Template '{}' not found", template_id))?;
 
         let character_id = format!("char_{}_{}", template_id, name.to_lowercase().replace(" ", "_"));
         
-        let character = Character::new(
+        let mut character = Character::new(
             character_id,
             name,
             template.class.clone(),
@@ -540,6 +540,32 @@ impl CharacterRoster {
             template.starting_stats.clone(),
             template.starting_appearance.clone(),
         );
+
+        // Add starting abilities
+        character.abilities = template.starting_abilities.clone();
+
+        // Equip starting items (if they exist in the item manager)
+        if let Some(item_id) = &template.starting_equipment.main_hand {
+            let _ = character.equip_item(item_id, item_manager);
+        }
+        if let Some(item_id) = &template.starting_equipment.off_hand {
+            let _ = character.equip_item(item_id, item_manager);
+        }
+        if let Some(item_id) = &template.starting_equipment.head {
+            let _ = character.equip_item(item_id, item_manager);
+        }
+        if let Some(item_id) = &template.starting_equipment.chest {
+            let _ = character.equip_item(item_id, item_manager);
+        }
+        if let Some(item_id) = &template.starting_equipment.legs {
+            let _ = character.equip_item(item_id, item_manager);
+        }
+        if let Some(item_id) = &template.starting_equipment.feet {
+            let _ = character.equip_item(item_id, item_manager);
+        }
+        if let Some(item_id) = &template.starting_equipment.hands {
+            let _ = character.equip_item(item_id, item_manager);
+        }
 
         Ok(character)
     }

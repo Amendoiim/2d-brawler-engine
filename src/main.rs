@@ -139,6 +139,12 @@ fn create_test_scene(engine: &mut Engine) {
     
     // Test character system
     test_character_system(engine);
+    test_enemy_system(engine);
+    test_items_system(engine);
+    
+    // Test localization system
+    test_localization_system(engine);
+    test_comprehensive_string_registry(engine);
     
     info!("Created test scene with game systems");
 }
@@ -1085,14 +1091,18 @@ fn test_character_system(engine: &mut Engine) {
     info!("Testing Character System...");
     
     use game::characters::*;
+    use game::items::ItemManager;
     
     // Test character roster
     let mut roster = CharacterRoster::new();
     info!("Character roster created with {} templates", roster.get_template_count());
     
+    // Create item manager for character equipment
+    let item_manager = ItemManager::new();
+    
     // Test character creation from template
     let fighter_template = roster.get_template("fighter_template").unwrap();
-    let mut fighter = roster.create_character_from_template("fighter_template", "Test Fighter".to_string()).unwrap();
+    let mut fighter = roster.create_character_from_template("fighter_template", "Test Fighter".to_string(), &item_manager).unwrap();
     info!("Created Fighter character: {} (Level {})", fighter.name, fighter.level);
     info!("  Stats: STR={}, AGI={}, INT={}, VIT={}", 
         fighter.stats.strength, fighter.stats.agility, fighter.stats.intelligence, fighter.stats.vitality);
@@ -1127,8 +1137,8 @@ fn test_character_system(engine: &mut Engine) {
     selection.add_character(fighter);
     
     // Create additional characters for testing
-    let mage = roster.create_character_from_template("mage_template", "Test Mage".to_string()).unwrap();
-    let ranger = roster.create_character_from_template("ranger_template", "Test Ranger".to_string()).unwrap();
+    let mage = roster.create_character_from_template("mage_template", "Test Mage".to_string(), &item_manager).unwrap();
+    let ranger = roster.create_character_from_template("ranger_template", "Test Ranger".to_string(), &item_manager).unwrap();
     
     selection.add_character(mage);
     selection.add_character(ranger);
@@ -1160,14 +1170,16 @@ fn test_character_system(engine: &mut Engine) {
     info!("  Characters by class: {:?}", stats.characters_by_class);
     
     // Test character damage and abilities
-    let fighter = selection.get_character(&character_ids[0]).unwrap();
-    info!("Fighter combat stats:");
-    info!("  Total damage: {:.1}", fighter.get_total_damage());
-    info!("  Total defense: {:.1}", fighter.get_total_defense());
-    info!("  Movement speed: {:.1}", fighter.get_movement_speed());
-    info!("  Health percentage: {:.1}%", fighter.get_health_percentage() * 100.0);
-    info!("  Mana percentage: {:.1}%", fighter.get_mana_percentage() * 100.0);
-    info!("  Stamina percentage: {:.1}%", fighter.get_stamina_percentage() * 100.0);
+    {
+        let fighter = selection.get_character(&character_ids[0]).unwrap();
+        info!("Fighter combat stats:");
+        info!("  Total damage: {:.1}", fighter.get_total_damage());
+        info!("  Total defense: {:.1}", fighter.get_total_defense());
+        info!("  Movement speed: {:.1}", fighter.get_movement_speed());
+        info!("  Health percentage: {:.1}%", fighter.get_health_percentage() * 100.0);
+        info!("  Mana percentage: {:.1}%", fighter.get_mana_percentage() * 100.0);
+        info!("  Stamina percentage: {:.1}%", fighter.get_stamina_percentage() * 100.0);
+    }
     
     // Test character status effects
     let mut fighter_mut = selection.get_character_mut(&character_ids[0]).unwrap();
@@ -1192,5 +1204,586 @@ fn test_character_system(engine: &mut Engine) {
     info!("Fighter healed 25, health: {:.1}/{:.1}", 
         fighter_mut.status.health, fighter_mut.status.max_health);
     
+    // Test equipment and inventory integration
+    info!("Testing equipment and inventory integration...");
+    
+    // Test equipping items
+    if let Ok(_) = fighter_mut.equip_item("iron_sword", &item_manager) {
+        info!("Equipped Iron Sword to fighter");
+        let total_stats = fighter_mut.get_total_stats(&item_manager);
+        info!("Fighter total stats with equipment: STR={:.1}, AGI={:.1}, INT={:.1}, VIT={:.1}", 
+            total_stats.strength, total_stats.agility, total_stats.intelligence, total_stats.vitality);
+    }
+    
+    // Test inventory operations
+    let inventory_result = fighter_mut.add_item_to_inventory("iron_sword", 1, &item_manager);
+    info!("Added Iron Sword to inventory: {:?}", inventory_result);
+    
+    let inventory_stats = fighter_mut.get_inventory_stats();
+    info!("Fighter inventory stats: Used slots: {}/{}, Weight: {:.1}/{:.1}", 
+        inventory_stats.used_slots, inventory_stats.max_slots, 
+        inventory_stats.total_weight, inventory_stats.max_weight);
+    
+    // Test total health calculation with equipment
+    let total_health = fighter_mut.get_total_max_health(&item_manager);
+    let total_mana = fighter_mut.get_total_max_mana(&item_manager);
+    let total_stamina = fighter_mut.get_total_max_stamina(&item_manager);
+    info!("Fighter total stats with equipment: Health: {:.1}, Mana: {:.1}, Stamina: {:.1}", 
+        total_health, total_mana, total_stamina);
+    
     info!("Character system test completed successfully");
+}
+
+/// Test the enemy system
+fn test_enemy_system(engine: &mut Engine) {
+    info!("Testing enemy system...");
+    
+    // Test basic enemy creation
+    let goblin = game::enemies::Enemy::new(game::enemies::EnemyType::Goblin, 1);
+    info!("Created Goblin: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        goblin.health, goblin.max_health, goblin.level, goblin.experience_value);
+    
+    let orc = game::enemies::Enemy::new(game::enemies::EnemyType::Orc, 2);
+    info!("Created Orc: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        orc.health, orc.max_health, orc.level, orc.experience_value);
+    
+    let archer = game::enemies::Enemy::new(game::enemies::EnemyType::Archer, 3);
+    info!("Created Archer: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        archer.health, archer.max_health, archer.level, archer.experience_value);
+    
+    // Test specialized enemies
+    let mage = game::enemies::Enemy::new(game::enemies::EnemyType::Mage, 4);
+    info!("Created Mage: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        mage.health, mage.max_health, mage.level, mage.experience_value);
+    
+    let berserker = game::enemies::Enemy::new(game::enemies::EnemyType::Berserker, 5);
+    info!("Created Berserker: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        berserker.health, berserker.max_health, berserker.level, berserker.experience_value);
+    
+    let shield_bearer = game::enemies::Enemy::new(game::enemies::EnemyType::ShieldBearer, 6);
+    info!("Created Shield Bearer: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        shield_bearer.health, shield_bearer.max_health, shield_bearer.level, shield_bearer.experience_value);
+    
+    // Test flying enemies
+    let bat = game::enemies::Enemy::new(game::enemies::EnemyType::Bat, 1);
+    info!("Created Bat: Health {:.1}/{:.1}, Can Fly: {}, Level {}", 
+        bat.health, bat.max_health, bat.can_fly, bat.level);
+    
+    let demon = game::enemies::Enemy::new(game::enemies::EnemyType::Demon, 7);
+    info!("Created Demon: Health {:.1}/{:.1}, Can Fly: {}, Level {}", 
+        demon.health, demon.max_health, demon.can_fly, demon.level);
+    
+    let dragon = game::enemies::Enemy::new(game::enemies::EnemyType::Dragon, 8);
+    info!("Created Dragon: Health {:.1}/{:.1}, Can Fly: {}, Level {}", 
+        dragon.health, dragon.max_health, dragon.can_fly, dragon.level);
+    
+    // Test boss enemies
+    let goblin_king = game::enemies::Enemy::new(game::enemies::EnemyType::GoblinKing, 10);
+    info!("Created Goblin King: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        goblin_king.health, goblin_king.max_health, goblin_king.level, goblin_king.experience_value);
+    
+    let orc_warlord = game::enemies::Enemy::new(game::enemies::EnemyType::OrcWarlord, 12);
+    info!("Created Orc Warlord: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        orc_warlord.health, orc_warlord.max_health, orc_warlord.level, orc_warlord.experience_value);
+    
+    let dark_mage = game::enemies::Enemy::new(game::enemies::EnemyType::DarkMage, 15);
+    info!("Created Dark Mage: Health {:.1}/{:.1}, Level {}, Experience {}", 
+        dark_mage.health, dark_mage.max_health, dark_mage.level, dark_mage.experience_value);
+    
+    let dragon_lord = game::enemies::Enemy::new(game::enemies::EnemyType::DragonLord, 20);
+    info!("Created Dragon Lord: Health {:.1}/{:.1}, Can Fly: {}, Level {}", 
+        dragon_lord.health, dragon_lord.max_health, dragon_lord.can_fly, dragon_lord.level);
+    
+    // Test enemy manager
+    let mut enemy_manager = game::enemies::EnemyManager::new();
+    enemy_manager.set_difficulty(1.5);
+    info!("Created enemy manager with difficulty: {}", enemy_manager.difficulty);
+    
+    // Test enemy spawning
+    let spawn_position = Vec2::new(100.0, 100.0);
+    if let Some(entity) = enemy_manager.spawn_enemy(game::enemies::EnemyType::Goblin, spawn_position, 1) {
+        info!("Spawned Goblin at {:?} with entity ID: {}", spawn_position, entity);
+    }
+    
+    if let Some(entity) = enemy_manager.spawn_enemy(game::enemies::EnemyType::Orc, Vec2::new(200.0, 100.0), 2) {
+        info!("Spawned Orc at {:?} with entity ID: {}", Vec2::new(200.0, 100.0), entity);
+    }
+    
+    if let Some(entity) = enemy_manager.spawn_enemy(game::enemies::EnemyType::GoblinKing, Vec2::new(300.0, 100.0), 10) {
+        info!("Spawned Goblin King at {:?} with entity ID: {}", Vec2::new(300.0, 100.0), entity);
+    }
+    
+    info!("Enemy manager has {} enemies spawned", enemy_manager.enemy_count());
+    info!("Enemy manager has {} alive enemies", enemy_manager.alive_enemy_count());
+    
+    // Test AI system
+    let mut ai_system = game::enemies::AISystem::new();
+    ai_system.global_settings.global_difficulty = 1.2;
+    info!("Created AI system with global difficulty: {}", ai_system.global_settings.global_difficulty);
+    
+    // Test damage system
+    let mut test_goblin = goblin.clone();
+    info!("Goblin initial health: {:.1}/{:.1}", test_goblin.health, test_goblin.max_health);
+    
+    let damage = 15.0;
+    let is_alive = test_goblin.take_damage(damage);
+    info!("Goblin took {} damage, health: {:.1}/{:.1}, alive: {}", 
+        damage, test_goblin.health, test_goblin.max_health, is_alive);
+    
+    test_goblin.heal(10.0);
+    info!("Goblin healed 10, health: {:.1}/{:.1}", test_goblin.health, test_goblin.max_health);
+    
+    // Test AI state transitions
+    let player_position = Vec2::new(150.0, 150.0);
+    let enemy_position = Vec2::new(100.0, 100.0);
+    
+    test_goblin.update_ai_state(Some(player_position), enemy_position);
+    info!("Goblin AI state: {:?}", test_goblin.ai_state);
+    
+    // Test detection and attack ranges
+    let can_see = test_goblin.can_see_target(player_position, enemy_position);
+    let can_attack = test_goblin.can_attack_target(player_position, enemy_position);
+    info!("Goblin can see player: {}, can attack player: {}", can_see, can_attack);
+    
+    info!("Enemy system test completed successfully");
+}
+
+/// Test the items and equipment system
+fn test_items_system(engine: &mut Engine) {
+    info!("=== Testing Items & Equipment System ===");
+    
+    // Test item manager
+    let mut item_manager = game::items::ItemManager::new();
+    item_manager.initialize_default_templates();
+    info!("Created item manager with {} templates", item_manager.item_templates.len());
+    
+    // Test item creation
+    if let Some(iron_sword) = item_manager.create_item("basic_sword", 5) {
+        info!("Created Iron Sword: Level {}, Value {}, Attack Damage +{}", 
+            iron_sword.level_requirement, iron_sword.value, iron_sword.stats.attack_damage_bonus);
+    }
+    
+    if let Some(magic_staff) = item_manager.create_item("magic_staff", 8) {
+        info!("Created Magic Staff: Level {}, Value {}, Magic Damage +{}, Mana +{}", 
+            magic_staff.level_requirement, magic_staff.value, 
+            magic_staff.stats.magic_damage_bonus, magic_staff.stats.mana_bonus);
+    }
+    
+    if let Some(health_potion) = item_manager.create_item("health_potion", 1) {
+        info!("Created Health Potion: Value {}, Effects: {}", 
+            health_potion.value, health_potion.effects.len());
+    }
+    
+    // Test equipment system
+    let mut equipment = game::items::Equipment::new();
+    let mut equipment_manager = game::items::EquipmentManager::new();
+    equipment_manager.initialize_default_sets();
+    info!("Created equipment system with {} equipment sets", equipment_manager.equipment_sets.len());
+    
+    // Test equipping items
+    if let Some(iron_sword) = item_manager.get_item("basic_sword_5") {
+        if equipment_manager.can_equip_item(iron_sword, &game::items::EquipmentSlot::MainHand) {
+            let old_item = equipment.equip_item(game::items::EquipmentSlot::MainHand, iron_sword.id.clone());
+            info!("Equipped Iron Sword, old item: {:?}", old_item);
+        }
+    }
+    
+    if let Some(magic_staff) = item_manager.get_item("magic_staff_8") {
+        if equipment_manager.can_equip_item(magic_staff, &game::items::EquipmentSlot::OffHand) {
+            let old_item = equipment.equip_item(game::items::EquipmentSlot::OffHand, magic_staff.id.clone());
+            info!("Equipped Magic Staff, old item: {:?}", old_item);
+        }
+    }
+    
+    // Update equipment stats
+    equipment.update_equipment(&item_manager.items);
+    info!("Equipment total stats - Attack Damage: +{}, Magic Damage: +{}, Mana: +{}", 
+        equipment.total_stats.attack_damage_bonus,
+        equipment.total_stats.magic_damage_bonus,
+        equipment.total_stats.mana_bonus);
+    
+    // Test consumable system
+    let mut consumable_manager = game::items::ConsumableManager::new();
+    consumable_manager.initialize_default_templates();
+    info!("Created consumable manager with {} templates", consumable_manager.consumable_templates.len());
+    
+    // Test consumable creation
+    if let Some(template) = consumable_manager.consumable_templates.get("health_potion") {
+        let health_potion = game::items::Consumable::from_template(template);
+        info!("Created Health Potion consumable: Cooldown {:.1}s, Stackable: {}", 
+            health_potion.cooldown, health_potion.stackable);
+    }
+    
+    if let Some(template) = consumable_manager.consumable_templates.get("strength_potion") {
+        let strength_potion = game::items::Consumable::from_template(template);
+        info!("Created Strength Potion: Duration {:.1}s, Cooldown {:.1}s", 
+            strength_potion.duration.unwrap_or(0.0), strength_potion.cooldown);
+    }
+    
+    // Test inventory system
+    let mut inventory = game::items::Inventory::new(50, 1000.0);
+    let mut inventory_manager = game::items::InventoryManager::new();
+    inventory_manager.update_item_database(item_manager.items.clone());
+    
+    // Test adding items to inventory
+    let add_result = inventory.add_item("basic_sword_5".to_string(), 1, &inventory_manager.item_database);
+    info!("Added Iron Sword to inventory: {:?}", add_result);
+    
+    let add_result = inventory.add_item("health_potion".to_string(), 5, &inventory_manager.item_database);
+    info!("Added 5 Health Potions to inventory: {:?}", add_result);
+    
+    let add_result = inventory.add_item("mana_potion".to_string(), 3, &inventory_manager.item_database);
+    info!("Added 3 Mana Potions to inventory: {:?}", add_result);
+    
+    // Test inventory statistics
+    info!("Inventory stats - Used slots: {}/{}, Weight: {:.1}/{:.1}", 
+        inventory.used_slots, inventory.max_slots, inventory.total_weight, inventory.max_weight);
+    
+    // Test inventory filtering
+    inventory.filters.item_type_filter = Some(game::items::ItemType::Consumable(game::items::ConsumableType::Potion));
+    let filtered_items = inventory.get_filtered_items(&inventory_manager.item_database);
+    info!("Filtered items (potions only): {} items", filtered_items.len());
+    
+    // Test inventory sorting
+    inventory.sort_order = game::items::SortOrder::Value;
+    let sorted_items = inventory.get_filtered_items(&inventory_manager.item_database);
+    info!("Sorted items by value: {} items", sorted_items.len());
+    
+    // Test item rarity system
+    let common_items = item_manager.get_items_by_rarity(&game::items::ItemRarity::Common);
+    let uncommon_items = item_manager.get_items_by_rarity(&game::items::ItemRarity::Uncommon);
+    let rare_items = item_manager.get_items_by_rarity(&game::items::ItemRarity::Rare);
+    
+    info!("Items by rarity - Common: {}, Uncommon: {}, Rare: {}", 
+        common_items.len(), uncommon_items.len(), rare_items.len());
+    
+    // Test item effects
+    if let Some(iron_sword) = item_manager.get_item("basic_sword_5") {
+        info!("Iron Sword effects: {} effects", iron_sword.effects.len());
+        for effect in &iron_sword.effects {
+            info!("  Effect: {:?} - {}", effect.effect_type, effect.description);
+        }
+    }
+    
+    // Test equipment set bonuses
+    let equipped_items: Vec<&String> = equipment.get_all_equipped_items();
+    let set_bonuses = equipment_manager.calculate_set_bonuses(&equipped_items, &item_manager.items);
+    info!("Active set bonuses: {} bonuses", set_bonuses.len());
+    
+    for bonus in &set_bonuses {
+        info!("  Set Bonus: {} - {} pieces equipped", bonus.set_name, bonus.pieces_equipped);
+    }
+    
+    // Test consumable usage simulation
+    let test_entity = 1; // Mock entity ID
+    if let Some(template) = consumable_manager.consumable_templates.get("health_potion") {
+        let health_potion = game::items::Consumable::from_template(template);
+        
+        // Simulate using the potion
+        match consumable_manager.use_consumable(test_entity, &health_potion) {
+            Ok(_) => info!("Successfully used Health Potion on entity {}", test_entity),
+            Err(e) => info!("Failed to use Health Potion: {}", e),
+        }
+        
+        // Check cooldown
+        let cooldown = consumable_manager.get_remaining_cooldown(test_entity, "health_potion");
+        info!("Health Potion cooldown remaining: {:.1}s", cooldown);
+    }
+    
+    // Test inventory operations
+    let move_result = inventory.move_item(0, 1, &inventory_manager.item_database);
+    info!("Moved item from slot 0 to slot 1: {:?}", move_result);
+    
+    let split_result = inventory.split_item(1, 2, &inventory_manager.item_database);
+    info!("Split item in slot 1 (quantity 2): {:?}", split_result);
+    
+    // Test inventory statistics
+    if let Some(stats) = inventory_manager.get_inventory_stats(test_entity) {
+        info!("Inventory statistics - Total items: {}, Total value: {}, Weight: {:.1}/{:.1}", 
+            stats.total_items, stats.total_value, stats.total_weight, stats.max_weight);
+    }
+    
+    info!("Items & Equipment system test completed successfully");
+}
+
+/// Test the localization system
+fn test_localization_system(engine: &mut Engine) {
+    use engine::localization::{Language, StringId, string_id};
+    use std::collections::HashMap;
+    
+    info!("Testing Localization System...");
+    
+    // Test basic localization functionality
+    let localization = engine.localization();
+    
+    // Test string ID creation
+    let main_menu_id = string_id!("ui.main_menu");
+    let play_id = string_id!("ui.play");
+    let settings_id = string_id!("ui.settings");
+    
+    info!("Created string IDs: {}, {}, {}", 
+        main_menu_id.as_str(), play_id.as_str(), settings_id.as_str());
+    
+    // Test fallback text (should work even without translation files)
+    let main_menu_text = localization.get_string(&main_menu_id);
+    let play_text = localization.get_string(&play_id);
+    let settings_text = localization.get_string(&settings_id);
+    
+    info!("Fallback texts - Main Menu: '{}', Play: '{}', Settings: '{}'", 
+        main_menu_text, play_text, settings_text);
+    
+    // Test language switching
+    let mut localization_mut = engine.localization_mut();
+    
+    // Test available languages
+    let available_languages = localization_mut.available_languages();
+    info!("Available languages: {:?}", available_languages);
+    
+    // Test language switching
+    if let Err(e) = localization_mut.set_language(Language::French) {
+        info!("Failed to set French language: {}", e);
+    } else {
+        info!("Switched to French language");
+        let french_main_menu = localization_mut.get_string(&main_menu_id);
+        info!("French Main Menu: '{}'", french_main_menu);
+    }
+    
+    // Test Korean
+    if let Err(e) = localization_mut.set_language(Language::Korean) {
+        info!("Failed to set Korean language: {}", e);
+    } else {
+        info!("Switched to Korean language");
+        let korean_main_menu = localization_mut.get_string(&main_menu_id);
+        info!("Korean Main Menu: '{}'", korean_main_menu);
+    }
+    
+    // Test Japanese
+    if let Err(e) = localization_mut.set_language(Language::Japanese) {
+        info!("Failed to set Japanese language: {}", e);
+    } else {
+        info!("Switched to Japanese language");
+        let japanese_main_menu = localization_mut.get_string(&main_menu_id);
+        info!("Japanese Main Menu: '{}'", japanese_main_menu);
+    }
+    
+    // Test Chinese Simplified
+    if let Err(e) = localization_mut.set_language(Language::ChineseSimplified) {
+        info!("Failed to set Chinese Simplified language: {}", e);
+    } else {
+        info!("Switched to Chinese Simplified language");
+        let chinese_main_menu = localization_mut.get_string(&main_menu_id);
+        info!("Chinese Simplified Main Menu: '{}'", chinese_main_menu);
+    }
+    
+    // Test Chinese Traditional
+    if let Err(e) = localization_mut.set_language(Language::ChineseTraditional) {
+        info!("Failed to set Chinese Traditional language: {}", e);
+    } else {
+        info!("Switched to Chinese Traditional language");
+        let chinese_main_menu = localization_mut.get_string(&main_menu_id);
+        info!("Chinese Traditional Main Menu: '{}'", chinese_main_menu);
+    }
+    
+    // Test Turkish
+    if let Err(e) = localization_mut.set_language(Language::Turkish) {
+        info!("Failed to set Turkish language: {}", e);
+    } else {
+        info!("Switched to Turkish language");
+        let turkish_main_menu = localization_mut.get_string(&main_menu_id);
+        info!("Turkish Main Menu: '{}'", turkish_main_menu);
+    }
+    
+    // Test Arabic (RTL language)
+    if let Err(e) = localization_mut.set_language(Language::Arabic) {
+        info!("Failed to set Arabic language: {}", e);
+    } else {
+        info!("Switched to Arabic language");
+        let arabic_main_menu = localization_mut.get_string(&main_menu_id);
+        let is_rtl = localization_mut.is_rtl();
+        info!("Arabic Main Menu: '{}' (RTL: {})", arabic_main_menu, is_rtl);
+    }
+    
+    // Test string interpolation
+    let mut variables = HashMap::new();
+    variables.insert("player_name".to_string(), "TestPlayer".to_string());
+    variables.insert("score".to_string(), "1000".to_string());
+    
+    let welcome_id = string_id!("ui.welcome");
+    let welcome_text = localization_mut.get_string_with_vars(&welcome_id, &variables);
+    info!("Welcome text with variables: '{}'", welcome_text);
+    
+    // Test pluralization
+    let item_count = 5;
+    let items_id = string_id!("gameplay.items");
+    let items_text = localization_mut.get_plural_string(&items_id, item_count);
+    info!("Plural text for {} items: '{}'", item_count, items_text);
+    
+    // Test font information
+    let font_info = localization_mut.get_font_info();
+    info!("Font info - Primary: {}, Size multiplier: {:.1}, Supports language: {}", 
+        font_info.primary_font, font_info.size_multiplier, font_info.supports_language);
+    
+    // Test text direction
+    let text_direction = localization_mut.get_text_direction();
+    info!("Text direction: {:?}", text_direction);
+    
+    // Test translation coverage
+    let coverage = localization_mut.get_all_translation_coverage();
+    for (language, coverage_percent) in coverage {
+        info!("Translation coverage for {:?}: {:.1}%", language, coverage_percent * 100.0);
+    }
+    
+    // Test string ID registration
+    let test_id = string_id!("test.new_string");
+    localization_mut.register_string_id(
+        test_id.clone(), 
+        engine::localization::string_id::StringCategory::UI, 
+        Some("Test string for localization".to_string())
+    );
+    
+    let stats = localization_mut.get_string_id_stats();
+    info!("String ID registry stats - Total IDs: {}", stats.total_ids);
+    
+    // Test helper functions
+    use engine::localization::manager::helpers;
+    let ui_text = helpers::ui(localization_mut, "menu", "play");
+    let gameplay_text = helpers::gameplay(localization_mut, "level", "complete");
+    let combat_text = helpers::combat(localization_mut, "attack", "heavy");
+    
+    info!("Helper functions - UI: '{}', Gameplay: '{}', Combat: '{}'", 
+        ui_text, gameplay_text, combat_text);
+    
+    // Switch back to English
+    if let Err(e) = localization_mut.set_language(Language::English) {
+        info!("Failed to switch back to English: {}", e);
+    } else {
+        info!("Switched back to English language");
+    }
+    
+    info!("Localization system test completed successfully");
+}
+
+/// Test the comprehensive string registry
+fn test_comprehensive_string_registry(engine: &mut Engine) {
+    println!("\n=== Testing Comprehensive String Registry ===");
+    
+    use crate::engine::localization::string_registry::GameStringRegistry;
+    use crate::engine::localization::StringId;
+    use crate::engine::localization::string_id::StringCategory;
+    
+    // Create the comprehensive string registry
+    let registry = GameStringRegistry::new();
+    
+    // Test getting all strings
+    let all_strings = registry.get_all_strings();
+    println!("Total registered strings: {}", all_strings.len());
+    
+    // Test getting strings by category
+    let ui_strings = registry.get_strings_by_category(&StringCategory::UI);
+    println!("UI strings: {}", ui_strings.len());
+    
+    let gameplay_strings = registry.get_strings_by_category(&StringCategory::Gameplay);
+    println!("Gameplay strings: {}", gameplay_strings.len());
+    
+    let character_strings = registry.get_strings_by_category(&StringCategory::Characters);
+    println!("Character strings: {}", character_strings.len());
+    
+    let item_strings = registry.get_strings_by_category(&StringCategory::Items);
+    println!("Item strings: {}", item_strings.len());
+    
+    let combat_strings = registry.get_strings_by_category(&StringCategory::Combat);
+    println!("Combat strings: {}", combat_strings.len());
+    
+    let enemy_strings = registry.get_strings_by_category(&StringCategory::Enemies);
+    println!("Enemy strings: {}", enemy_strings.len());
+    
+    let level_strings = registry.get_strings_by_category(&StringCategory::Levels);
+    println!("Level strings: {}", level_strings.len());
+    
+    let tutorial_strings = registry.get_strings_by_category(&StringCategory::Tutorial);
+    println!("Tutorial strings: {}", tutorial_strings.len());
+    
+    let error_strings = registry.get_strings_by_category(&StringCategory::Errors);
+    println!("Error strings: {}", error_strings.len());
+    
+    let achievement_strings = registry.get_strings_by_category(&StringCategory::Achievements);
+    println!("Achievement strings: {}", achievement_strings.len());
+    
+    let settings_strings = registry.get_strings_by_category(&StringCategory::Settings);
+    println!("Settings strings: {}", settings_strings.len());
+    
+    // Test specific string metadata
+    let main_menu_id = StringId::new("ui.main_menu");
+    if let Some(metadata) = registry.get_metadata(&main_menu_id) {
+        println!("Main menu string metadata:");
+        println!("  Category: {:?}", metadata.category);
+        println!("  Max length: {:?}", metadata.max_length);
+        println!("  Description: {:?}", metadata.description);
+        println!("  Context: {:?}", metadata.context);
+    }
+    
+    // Test character limits
+    let mut max_ui_length = 0;
+    let mut max_gameplay_length = 0;
+    let mut max_item_length = 0;
+    
+    for string_id in &ui_strings {
+        if let Some(metadata) = registry.get_metadata(string_id) {
+            if let Some(length) = metadata.max_length {
+                max_ui_length = max_ui_length.max(length);
+            }
+        }
+    }
+    
+    for string_id in &gameplay_strings {
+        if let Some(metadata) = registry.get_metadata(string_id) {
+            if let Some(length) = metadata.max_length {
+                max_gameplay_length = max_gameplay_length.max(length);
+            }
+        }
+    }
+    
+    for string_id in &item_strings {
+        if let Some(metadata) = registry.get_metadata(string_id) {
+            if let Some(length) = metadata.max_length {
+                max_item_length = max_item_length.max(length);
+            }
+        }
+    }
+    
+    println!("Character limits:");
+    println!("  Max UI string length: {}", max_ui_length);
+    println!("  Max gameplay string length: {}", max_gameplay_length);
+    println!("  Max item string length: {}", max_item_length);
+    
+    // Test some specific string IDs
+    let test_strings = vec![
+        "ui.main_menu",
+        "gameplay.health",
+        "characters.fighter",
+        "items.sword",
+        "combat.attack",
+        "enemies.goblin",
+        "levels.forest_clearing",
+        "tutorial.welcome",
+        "errors.generic",
+        "achievements.first_kill",
+        "settings.graphics",
+    ];
+    
+    println!("\nTesting specific string IDs:");
+    for string_id_str in test_strings {
+        let string_id = StringId::new(string_id_str);
+        if let Some(metadata) = registry.get_metadata(&string_id) {
+            println!("  {}: max_length={:?}, category={:?}", 
+                string_id_str, 
+                metadata.max_length, 
+                metadata.category
+            );
+        } else {
+            println!("  {}: NOT FOUND", string_id_str);
+        }
+    }
+    
+    println!("Comprehensive string registry test completed successfully!");
 }

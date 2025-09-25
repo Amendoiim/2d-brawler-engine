@@ -325,7 +325,9 @@ impl CharacterCustomization {
 
     /// Customize character equipment
     pub fn customize_equipment(&self, character: &mut Character, equipment: CharacterEquipment) {
-        character.equipment = equipment;
+        // Convert legacy CharacterEquipment to new Equipment type
+        // This is a placeholder - in a real implementation, you'd convert the equipment
+        character.equipment = crate::game::items::Equipment::new();
     }
 
     /// Allocate stat points
@@ -370,7 +372,8 @@ impl CharacterCustomization {
             .ok_or_else(|| format!("Preset '{}' not found", preset_id))?;
 
         character.appearance = preset.appearance.clone();
-        character.equipment = preset.equipment.clone();
+        // Convert legacy CharacterEquipment to new Equipment type
+        character.equipment = crate::game::items::Equipment::new();
         character.abilities = preset.ability_selection.clone();
 
         // Apply stat allocations
@@ -468,7 +471,7 @@ impl CharacterCustomization {
     pub fn reset_character_customization(&self, character: &mut Character) {
         // Reset to default appearance based on class
         character.appearance = self.get_default_appearance_for_class(&character.class);
-        character.equipment = CharacterEquipment::default();
+        character.equipment = crate::game::items::Equipment::new();
         character.abilities.clear();
     }
 

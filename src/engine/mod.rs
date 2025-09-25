@@ -10,6 +10,7 @@ pub mod asset;
 pub mod animation;
 pub mod particles;
 pub mod level;
+pub mod localization;
 
 use anyhow::Result;
 use winit::{
@@ -32,6 +33,7 @@ pub struct Engine {
     animation: animation::AnimationSystem,
     particles: particles::ParticleSystem,
     level_generator: level::LevelGenerator,
+    localization: localization::manager::GameLocalizationManager,
 }
 
 impl Engine {
@@ -53,6 +55,7 @@ impl Engine {
         let animation = animation::AnimationSystem::new();
         let particles = particles::ParticleSystem::new();
         let level_generator = level::LevelGenerator::new();
+        let localization = localization::manager::GameLocalizationManager::new();
 
         Ok(Self {
             platform,
@@ -66,6 +69,7 @@ impl Engine {
             animation,
             particles,
             level_generator,
+            localization,
         })
     }
 
@@ -131,6 +135,16 @@ impl Engine {
     /// Get mutable reference to level generator
     pub fn level_generator_mut(&mut self) -> &mut level::LevelGenerator {
         &mut self.level_generator
+    }
+
+    /// Get mutable reference to localization manager
+    pub fn localization_mut(&mut self) -> &mut localization::manager::GameLocalizationManager {
+        &mut self.localization
+    }
+
+    /// Get reference to localization manager
+    pub fn localization(&self) -> &localization::manager::GameLocalizationManager {
+        &self.localization
     }
 
     /// Load a scene

@@ -2,6 +2,7 @@
 ## 2D Brawler Engine - System Architecture Roadmap
 
 **Created:** December 19, 2024  
+**Last Updated:** September 25, 2025  
 **Current Status:** Phase 3 Week 7 Complete  
 **Target:** Phase 5 Complete (Commercial Release)  
 **Architecture Evolution:** Single-Player → Multiplayer → Cross-Platform

@@ -10,6 +10,7 @@ use crate::engine::ecs::{Component, Entity};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use glam::Vec2;
+use crate::game::items::{Equipment, Inventory, ItemManager};
 
 pub mod character_roster;
 pub mod character_customization;
@@ -41,7 +42,9 @@ pub struct Character {
     /// Character abilities
     pub abilities: Vec<String>,
     /// Character equipment
-    pub equipment: CharacterEquipment,
+    pub equipment: Equipment,
+    /// Character inventory
+    pub inventory: Inventory,
     /// Character status
     pub status: CharacterStatus,
     /// Character preferences
@@ -144,7 +147,7 @@ pub enum MarkingType {
     Decoration,
 }
 
-/// Character equipment
+/// Character equipment (legacy type for compatibility)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CharacterEquipment {
     /// Head equipment
@@ -346,7 +349,8 @@ impl Character {
             stats,
             appearance,
             abilities: Vec::new(),
-            equipment: CharacterEquipment::default(),
+            equipment: Equipment::new(),
+            inventory: Inventory::new(50, 1000.0),
             status: CharacterStatus {
                 health: max_health,
                 max_health,
@@ -645,6 +649,95 @@ impl Character {
         } else {
             0.0
         }
+    }
+
+    /// Calculate total stats including equipment bonuses
+    pub fn get_total_stats(&self, item_manager: &ItemManager) -> CharacterStats {
+        let mut total_stats = self.stats.clone();
+        
+        // Add equipment bonuses
+        let equipment_bonuses = self.equipment.calculate_total_stats(&item_manager.items);
+        total_stats.strength += equipment_bonuses.strength_bonus as u32;
+        total_stats.agility += equipment_bonuses.dexterity_bonus as u32;
+        total_stats.intelligence += equipment_bonuses.intelligence_bonus as u32;
+        total_stats.vitality += equipment_bonuses.constitution_bonus as u32;
+        
+        total_stats
+    }
+
+    /// Calculate total health including equipment bonuses
+    pub fn get_total_max_health(&self, item_manager: &ItemManager) -> f32 {
+        let total_stats = self.get_total_stats(item_manager);
+        Self::calculate_max_health(&total_stats, self.level)
+    }
+
+    /// Calculate total mana including equipment bonuses
+    pub fn get_total_max_mana(&self, item_manager: &ItemManager) -> f32 {
+        let total_stats = self.get_total_stats(item_manager);
+        Self::calculate_max_mana(&total_stats, self.level)
+    }
+
+    /// Calculate total stamina including equipment bonuses
+    pub fn get_total_max_stamina(&self, item_manager: &ItemManager) -> f32 {
+        let total_stats = self.get_total_stats(item_manager);
+        Self::calculate_max_stamina(&total_stats, self.level)
+    }
+
+    /// Equip an item
+    pub fn equip_item(&mut self, item_id: &str, item_manager: &ItemManager) -> Result<(), String> {
+        if let Some(item) = item_manager.get_item(item_id) {
+            // Determine the appropriate slot based on item type
+            let slot = match &item.item_type {
+                crate::game::items::ItemType::Weapon(weapon_type) => {
+                    match weapon_type {
+                        crate::game::items::WeaponType::Sword | 
+                        crate::game::items::WeaponType::Axe | 
+                        crate::game::items::WeaponType::Mace => crate::game::items::EquipmentSlot::MainHand,
+                        crate::game::items::WeaponType::Bow => crate::game::items::EquipmentSlot::MainHand,
+                        _ => crate::game::items::EquipmentSlot::MainHand,
+                    }
+                },
+                crate::game::items::ItemType::Armor(armor_type) => {
+                    match armor_type {
+                        crate::game::items::ArmorType::Helmet => crate::game::items::EquipmentSlot::Helmet,
+                        crate::game::items::ArmorType::Chestplate => crate::game::items::EquipmentSlot::Chestplate,
+                        crate::game::items::ArmorType::Leggings => crate::game::items::EquipmentSlot::Leggings,
+                        crate::game::items::ArmorType::Boots => crate::game::items::EquipmentSlot::Boots,
+                        crate::game::items::ArmorType::Gloves => crate::game::items::EquipmentSlot::Gloves,
+                        crate::game::items::ArmorType::Shield => crate::game::items::EquipmentSlot::Shield,
+                        crate::game::items::ArmorType::Cape => crate::game::items::EquipmentSlot::Cape,
+                        crate::game::items::ArmorType::Belt => crate::game::items::EquipmentSlot::Belt,
+                    }
+                },
+                crate::game::items::ItemType::Accessory(_) => crate::game::items::EquipmentSlot::Ring1,
+                _ => return Err("Item cannot be equipped".to_string()),
+            };
+            
+            let old_item = self.equipment.equip_item(slot, item_id.to_string());
+            Ok(())
+        } else {
+            Err("Item not found".to_string())
+        }
+    }
+
+    /// Unequip an item from a slot
+    pub fn unequip_item(&mut self, slot: &crate::game::items::EquipmentSlot) -> Option<String> {
+        self.equipment.unequip_item(slot.clone())
+    }
+
+    /// Add item to inventory
+    pub fn add_item_to_inventory(&mut self, item_id: &str, quantity: u32, item_manager: &ItemManager) -> crate::game::items::InventoryResult {
+        self.inventory.add_item(item_id.to_string(), quantity, &item_manager.items)
+    }
+
+    /// Remove item from inventory
+    pub fn remove_item_from_inventory(&mut self, slot_index: u32, quantity: u32, item_manager: &ItemManager) -> crate::game::items::InventoryResult {
+        self.inventory.remove_item(slot_index, quantity, &item_manager.items)
+    }
+
+    /// Get inventory statistics
+    pub fn get_inventory_stats(&self) -> crate::game::items::InventoryStats {
+        self.inventory.get_stats()
     }
 }
 

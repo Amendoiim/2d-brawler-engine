@@ -5,6 +5,8 @@ pub mod characters;
 pub mod levels;
 pub mod progression;
 pub mod abilities;
+pub mod enemies;
+pub mod items;
 
 use crate::engine::ecs::{World, Component, System, Entity};
 
@@ -22,6 +24,12 @@ use abilities::*;
 
 // Import character components
 use characters::*;
+
+// Import enemy components
+use enemies::*;
+
+// Import item components
+use items::*;
 
 /// Game state management
 pub struct GameState {

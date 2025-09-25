@@ -307,12 +307,20 @@ impl CharacterProgression {
             return 0;
         }
         
+        // Cap level to prevent overflow
+        let capped_level = level.min(100);
+        
         let base_exp = 100;
         let level_multiplier = 1.2f32;
-        let mut total_exp = 0;
+        let mut total_exp = 0u32;
         
-        for i in 2..=level {
-            total_exp += (base_exp as f32 * level_multiplier.powi(i as i32 - 2)) as u32;
+        for i in 2..=capped_level {
+            let exp_for_level = (base_exp as f32 * level_multiplier.powi(i as i32 - 2)) as u32;
+            // Check for overflow before adding
+            if total_exp > u32::MAX - exp_for_level {
+                return u32::MAX;
+            }
+            total_exp += exp_for_level;
         }
         
         total_exp
