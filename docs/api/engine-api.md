@@ -24,6 +24,14 @@ This document provides detailed API documentation for the 2D Brawler Engine. The
 - [x] **Game Logic** - Character movement and basic combat systems implemented
 - [x] **Scene Management** - Real scene loading and transitions with entity spawning
 
+### Phase 3: Game Content (Active 🚀)
+- [ ] **Character Animation** - Sprite-based character animations
+- [ ] **Level Generation** - Procedural level creation
+- [ ] **Combat Polish** - Advanced combat mechanics
+- [ ] **Visual Effects** - Particle systems and visual polish
+- [ ] **Character Variety** - Multiple playable characters and enemies
+- [ ] **Item System** - Equipment, consumables, and progression
+
 ## API Status Legend
 
 - ✅ **Implemented** - Fully functional in Phase 1
