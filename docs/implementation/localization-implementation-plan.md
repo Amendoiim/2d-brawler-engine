@@ -376,83 +376,78 @@ This document outlines the comprehensive localization implementation plan for th
 | `achievements.boss_killer` | "Boss Slayer" | 25 | Defeat all bosses |
 | `achievements.perfectionist` | "Perfectionist" | 25 | Complete without dying |
 
-### 11. Sound Test System (`sound_test.*`)
+### 11. Sound Test System (`ui.sound_test.*`)
 
-#### Sound Effect Categories (Character Limit: 30)
+#### Sound Test UI (Character Limit: 30)
 | String ID | English | Max Chars | Description |
 |-----------|---------|-----------|-------------|
-| `sound_test.combat_hit` | "Combat Hit" | 20 | Combat hit sound |
-| `sound_test.combat_miss` | "Combat Miss" | 20 | Combat miss sound |
-| `sound_test.combat_critical` | "Critical Hit" | 20 | Critical hit sound |
-| `sound_test.combat_block` | "Block" | 10 | Block sound |
-| `sound_test.combat_parry` | "Parry" | 10 | Parry sound |
-| `sound_test.combat_dodge` | "Dodge" | 10 | Dodge sound |
-| `sound_test.weapon_swing` | "Weapon Swing" | 20 | Weapon swing sound |
-| `sound_test.weapon_impact` | "Weapon Impact" | 20 | Weapon impact sound |
-| `sound_test.spell_cast` | "Spell Cast" | 20 | Spell casting sound |
-| `sound_test.spell_impact` | "Spell Impact" | 20 | Spell impact sound |
-| `sound_test.item_pickup` | "Item Pickup" | 20 | Item pickup sound |
-| `sound_test.item_use` | "Item Use" | 15 | Item use sound |
-| `sound_test.level_up` | "Level Up" | 15 | Level up sound |
-| `sound_test.health_potion` | "Health Potion" | 20 | Health potion sound |
-| `sound_test.mana_potion` | "Mana Potion" | 20 | Mana potion sound |
-| `sound_test.door_open` | "Door Open" | 20 | Door opening sound |
-| `sound_test.door_close` | "Door Close" | 20 | Door closing sound |
-| `sound_test.chest_open` | "Chest Open" | 20 | Chest opening sound |
-| `sound_test.footstep` | "Footstep" | 15 | Footstep sound |
-| `sound_test.jump` | "Jump" | 10 | Jump sound |
-| `sound_test.land` | "Land" | 10 | Landing sound |
-| `sound_test.button_click` | "Button Click" | 20 | Button click sound |
-| `sound_test.button_hover` | "Button Hover" | 20 | Button hover sound |
-| `sound_test.menu_open` | "Menu Open" | 20 | Menu open sound |
-| `sound_test.menu_close` | "Menu Close" | 20 | Menu close sound |
+| `ui.sound_test` | "Sound Test" | 15 | Sound test menu title |
+| `ui.sound_test_sfx` | "Sound Effects" | 20 | SFX category title |
+| `ui.sound_test_music` | "Background Music" | 20 | BGM category title |
+| `ui.sound_test_voice` | "Voice Lines" | 20 | Voice category title |
+| `ui.sound_test_ambient` | "Ambient Sounds" | 20 | Ambient category title |
+| `ui.sound_test_play` | "Play" | 10 | Play sound button |
+| `ui.sound_test_stop` | "Stop" | 10 | Stop sound button |
+| `ui.sound_test_loop` | "Loop" | 10 | Loop sound button |
+| `ui.sound_test_volume` | "Volume" | 10 | Volume control label |
+| `ui.sound_test_category` | "Category" | 10 | Category selection label |
+| `ui.sound_test_current` | "Currently Playing" | 20 | Currently playing label |
+| `ui.sound_test_duration` | "Duration" | 10 | Duration label |
+| `ui.sound_test_frequency` | "Frequency" | 10 | Frequency label |
+| `ui.sound_test_format` | "Format" | 10 | Audio format label |
+| `ui.sound_test_channels` | "Channels" | 10 | Audio channels label |
+| `ui.sound_test_bitrate` | "Bitrate" | 10 | Audio bitrate label |
+| `ui.sound_test_sample_rate` | "Sample Rate" | 15 | Sample rate label |
+| `ui.sound_test_export` | "Export Audio" | 15 | Export audio button |
+| `ui.sound_test_import` | "Import Audio" | 15 | Import audio button |
+| `ui.sound_test_reset` | "Reset to Default" | 20 | Reset audio settings button |
 
 #### Background Music Categories (Character Limit: 35)
 | String ID | English | Max Chars | Description |
 |-----------|---------|-----------|-------------|
-| `sound_test.music_main_menu` | "Main Menu Theme" | 25 | Main menu background music |
-| `sound_test.music_character_select` | "Character Selection" | 30 | Character selection music |
-| `sound_test.music_forest` | "Forest Theme" | 20 | Forest level music |
-| `sound_test.music_cave` | "Cave Theme" | 20 | Cave level music |
-| `sound_test.music_mountain` | "Mountain Theme" | 25 | Mountain level music |
-| `sound_test.music_ruins` | "Ancient Ruins" | 25 | Ruins level music |
-| `sound_test.music_castle` | "Castle Theme" | 20 | Castle level music |
-| `sound_test.music_dungeon` | "Dungeon Theme" | 25 | Dungeon level music |
-| `sound_test.music_volcano` | "Volcanic Theme" | 25 | Volcanic level music |
-| `sound_test.music_ice` | "Ice Cavern" | 20 | Ice cavern music |
-| `sound_test.music_combat` | "Combat Theme" | 20 | Combat background music |
-| `sound_test.music_boss` | "Boss Battle" | 20 | Boss battle music |
-| `sound_test.music_victory` | "Victory Theme" | 20 | Victory music |
-| `sound_test.music_defeat` | "Defeat Theme" | 20 | Defeat music |
-| `sound_test.music_credits` | "Credits Theme" | 20 | Credits music |
+| `ui.sound_test_music_main_menu` | "Main Menu Theme" | 25 | Main menu background music |
+| `ui.sound_test_music_character_select` | "Character Selection" | 30 | Character selection music |
+| `ui.sound_test_music_forest` | "Forest Theme" | 20 | Forest level music |
+| `ui.sound_test_music_cave` | "Cave Theme" | 20 | Cave level music |
+| `ui.sound_test_music_mountain` | "Mountain Theme" | 25 | Mountain level music |
+| `ui.sound_test_music_ruins` | "Ancient Ruins" | 25 | Ruins level music |
+| `ui.sound_test_music_castle` | "Castle Theme" | 20 | Castle level music |
+| `ui.sound_test_music_dungeon` | "Dungeon Theme" | 25 | Dungeon level music |
+| `ui.sound_test_music_volcano` | "Volcanic Theme" | 25 | Volcanic level music |
+| `ui.sound_test_music_ice` | "Ice Cavern" | 20 | Ice cavern music |
+| `ui.sound_test_music_combat` | "Combat Theme" | 20 | Combat background music |
+| `ui.sound_test_music_boss` | "Boss Battle" | 20 | Boss battle music |
+| `ui.sound_test_music_victory` | "Victory Theme" | 20 | Victory music |
+| `ui.sound_test_music_defeat` | "Defeat Theme" | 20 | Defeat music |
+| `ui.sound_test_music_credits` | "Credits Theme" | 20 | Credits music |
 
 #### Voice Line Categories (Character Limit: 30)
 | String ID | English | Max Chars | Description |
 |-----------|---------|-----------|-------------|
-| `sound_test.voice_attack` | "Attack Voice" | 20 | Character attack voice |
-| `sound_test.voice_hurt` | "Hurt Voice" | 20 | Character hurt voice |
-| `sound_test.voice_death` | "Death Voice" | 20 | Character death voice |
-| `sound_test.voice_victory` | "Victory Voice" | 20 | Victory voice |
-| `sound_test.voice_level_up` | "Level Up Voice" | 25 | Level up voice |
-| `sound_test.voice_taunt` | "Taunt Voice" | 20 | Taunt voice |
-| `sound_test.voice_encouragement` | "Encouragement" | 25 | Encouragement voice |
-| `sound_test.voice_warning` | "Warning Voice" | 20 | Warning voice |
-| `sound_test.voice_grunt` | "Grunt Voice" | 20 | Grunt voice |
-| `sound_test.voice_sigh` | "Sigh Voice" | 20 | Sigh voice |
+| `ui.sound_test_voice_attack` | "Attack Voice" | 20 | Character attack voice |
+| `ui.sound_test_voice_hurt` | "Hurt Voice" | 20 | Character hurt voice |
+| `ui.sound_test_voice_death` | "Death Voice" | 20 | Character death voice |
+| `ui.sound_test_voice_victory` | "Victory Voice" | 20 | Victory voice |
+| `ui.sound_test_voice_level_up` | "Level Up Voice" | 25 | Level up voice |
+| `ui.sound_test_voice_taunt` | "Taunt Voice" | 20 | Taunt voice |
+| `ui.sound_test_voice_encouragement` | "Encouragement" | 25 | Encouragement voice |
+| `ui.sound_test_voice_warning` | "Warning Voice" | 20 | Warning voice |
+| `ui.sound_test_voice_grunt` | "Grunt Voice" | 20 | Grunt voice |
+| `ui.sound_test_voice_sigh` | "Sigh Voice" | 20 | Sigh voice |
 
 #### Ambient Sound Categories (Character Limit: 30)
 | String ID | English | Max Chars | Description |
 |-----------|---------|-----------|-------------|
-| `sound_test.ambient_wind` | "Wind" | 10 | Wind ambient sound |
-| `sound_test.ambient_rain` | "Rain" | 10 | Rain ambient sound |
-| `sound_test.ambient_thunder` | "Thunder" | 15 | Thunder ambient sound |
-| `sound_test.ambient_fire` | "Fire" | 10 | Fire ambient sound |
-| `sound_test.ambient_water` | "Water" | 10 | Water ambient sound |
-| `sound_test.ambient_cave` | "Cave Echo" | 20 | Cave echo ambient sound |
-| `sound_test.ambient_forest` | "Forest Sounds" | 25 | Forest ambient sounds |
-| `sound_test.ambient_city` | "City Sounds" | 20 | City ambient sounds |
-| `sound_test.ambient_machinery` | "Machinery" | 20 | Machinery ambient sound |
-| `sound_test.ambient_magic` | "Magic Aura" | 20 | Magic aura ambient sound |
+| `ui.sound_test_ambient_wind` | "Wind" | 10 | Wind ambient sound |
+| `ui.sound_test_ambient_rain` | "Rain" | 10 | Rain ambient sound |
+| `ui.sound_test_ambient_thunder` | "Thunder" | 15 | Thunder ambient sound |
+| `ui.sound_test_ambient_fire` | "Fire" | 10 | Fire ambient sound |
+| `ui.sound_test_ambient_water` | "Water" | 10 | Water ambient sound |
+| `ui.sound_test_ambient_cave` | "Cave Echo" | 20 | Cave echo ambient sound |
+| `ui.sound_test_ambient_forest` | "Forest Sounds" | 25 | Forest ambient sounds |
+| `ui.sound_test_ambient_city` | "City Sounds" | 20 | City ambient sounds |
+| `ui.sound_test_ambient_machinery` | "Machinery" | 20 | Machinery ambient sound |
+| `ui.sound_test_ambient_magic` | "Magic Aura" | 20 | Magic aura ambient sound |
 
 ### 12. SFX Pitch Variation System (`sfx_pitch.*`)
 
@@ -1370,54 +1365,47 @@ Examples:
 
 ## Implementation Priority
 
-### Phase 1: Core UI (Week 1)
-- Main menu and navigation
-- Basic gameplay elements
-- Character selection
+### Phase 1: Core Localization System (Week 1) ✅ COMPLETE
+- [x] String ID system and registry
+- [x] Translation file format and loading
+- [x] Language switching and fallback
+- [x] Basic UI integration
 
-### Phase 2: Game Systems (Week 2)
-- Inventory and equipment
-- Combat system
-- Character progression
+### Phase 2: Advanced Features (Week 2) ✅ COMPLETE
+- [x] Pluralization system
+- [x] String interpolation
+- [x] UI mirroring for RTL languages
+- [x] Character limits and validation
 
-### Phase 3: Content (Week 3)
-- Items and equipment names
-- Enemy names and descriptions
-- Level names and descriptions
+### Phase 3: Content Translation (Week 3) ✅ COMPLETE
+- [x] UI strings translation
+- [x] Gameplay strings translation
+- [x] Combat strings translation
+- [x] Character strings translation
 
-### Phase 4: Polish (Week 4)
-- Error messages
-- Tutorial system
-- Achievement system
-- Sound test system
-- Testing and validation
+### Phase 4: Audio Systems (Week 4) ✅ COMPLETE
+- [x] Sound test system strings
+- [x] Dynamic music system strings
+- [x] SFX pitch variation strings
+- [x] Music transition strings
 
-### Phase 5: Sound Test Implementation (Week 5)
-- Sound test UI and navigation
-- Audio playback controls
-- Waveform display and visualization
-- Audio file management
-- Export/import functionality
-- Testing and optimization
+### Phase 5: Sound Test Implementation (Week 5) 🔄 IN PROGRESS
+- [ ] Sound test UI implementation
+- [ ] Audio playback controls
+- [ ] Waveform display
+- [ ] Export/import functionality
 
-### Phase 6: SFX Pitch Variation System Implementation (Week 6)
-- Real-time pitch shifting engine
-- Pitch variation generation system
-- Advanced pitch effects and processing
-- Pitch range management and validation
-- Variation caching and optimization
-- SFX pitch variation UI
-- Testing and optimization
+### Phase 6: SFX Pitch Variation System Implementation (Week 6) 📋 PLANNED
+- [ ] Pitch shifting algorithms
+- [ ] Real-time processing
+- [ ] Variation management
+- [ ] UI controls
 
-### Phase 7: Dynamic Music System Implementation (Week 7)
-- 4-stem adaptive music system
-- Real-time music analysis engine
-- Intelligent transition system
-- Dynamic music states
-- Advanced audio processing
-- Gameplay integration
-- Music composition tools
-- Testing and optimization
+### Phase 7: Dynamic Music System Implementation (Week 7) 📋 PLANNED
+- [ ] 4-stem architecture
+- [ ] Real-time analysis
+- [ ] Intelligent transitions
+- [ ] Gameplay integration
 
 ## File Organization
 

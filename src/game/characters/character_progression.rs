@@ -6,10 +6,14 @@
 //! - Ability unlocking and progression
 //! - Achievement tracking
 //! - Character milestones
+//! - Enhanced progression with item integration
 
 use super::*;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use crate::game::items::{ItemManager, Item, ItemType, EquipmentSlot};
+use crate::game::characters::enhanced_progression::{EnhancedProgressionManager, ExperienceSource};
+use crate::game::characters::skill_trees::{SkillTreeManager, StatType};
 
 /// Character progression manager
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -24,6 +28,8 @@ pub struct CharacterProgression {
     pub achievements: HashMap<String, Achievement>,
     /// Milestone definitions
     pub milestones: HashMap<String, Milestone>,
+    /// Enhanced progression manager
+    pub enhanced_progression: HashMap<String, EnhancedProgressionManager>,
 }
 
 /// Character progression data
@@ -273,6 +279,7 @@ impl CharacterProgression {
             ability_requirements: HashMap::new(),
             achievements: HashMap::new(),
             milestones: HashMap::new(),
+            enhanced_progression: HashMap::new(),
         };
         
         progression.initialize_level_requirements();
@@ -789,6 +796,122 @@ impl CharacterProgression {
             .collect();
 
         Ok(milestones)
+    }
+    
+    /// Initialize enhanced progression for a character
+    pub fn initialize_enhanced_progression(&mut self, character_id: &str) {
+        let enhanced_progression = EnhancedProgressionManager::new();
+        self.enhanced_progression.insert(character_id.to_string(), enhanced_progression);
+    }
+    
+    /// Get enhanced progression manager for a character
+    pub fn get_enhanced_progression(&self, character_id: &str) -> Option<&EnhancedProgressionManager> {
+        self.enhanced_progression.get(character_id)
+    }
+    
+    /// Get enhanced progression manager mutably for a character
+    pub fn get_enhanced_progression_mut(&mut self, character_id: &str) -> Option<&mut EnhancedProgressionManager> {
+        self.enhanced_progression.get_mut(character_id)
+    }
+    
+    /// Add experience with enhanced progression
+    pub fn add_experience_enhanced(&mut self, character_id: &str, amount: u32, source: ExperienceSource, character: &Character, item_manager: &ItemManager) -> Result<(), String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get_mut(character_id) {
+            // Apply item bonuses
+            enhanced_progression.apply_item_bonuses(character, item_manager);
+            
+            // Apply equipment multipliers
+            enhanced_progression.apply_equipment_multipliers(character, item_manager);
+            
+            // Add experience
+            enhanced_progression.add_experience(amount, source);
+            
+            // Update character stats with enhanced progression
+            if let Some(progression_data) = self.progression_data.get_mut(character_id) {
+                progression_data.current_experience = enhanced_progression.experience_system.total_experience;
+                progression_data.current_level = enhanced_progression.experience_system.current_level;
+                progression_data.total_experience = enhanced_progression.experience_system.total_experience;
+            }
+            
+            Ok(())
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
+    }
+    
+    /// Get enhanced character stats
+    pub fn get_enhanced_stats(&self, character_id: &str, base_stats: &CharacterStats) -> Result<CharacterStats, String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get(character_id) {
+            Ok(enhanced_progression.get_enhanced_stats(base_stats))
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
+    }
+    
+    /// Get skill tree manager for a character
+    pub fn get_skill_tree_manager(&self, character_id: &str) -> Option<&SkillTreeManager> {
+        self.enhanced_progression.get(character_id)
+            .map(|ep| &ep.experience_system.skill_tree_progression)
+    }
+    
+    /// Get skill tree manager mutably for a character
+    pub fn get_skill_tree_manager_mut(&mut self, character_id: &str) -> Option<&mut SkillTreeManager> {
+        self.enhanced_progression.get_mut(character_id)
+            .map(|ep| &mut ep.experience_system.skill_tree_progression)
+    }
+    
+    /// Unlock skill for a character
+    pub fn unlock_skill(&mut self, character_id: &str, tree_id: &str, skill_id: &str) -> Result<bool, String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get_mut(character_id) {
+            Ok(enhanced_progression.experience_system.skill_tree_progression.unlock_skill(tree_id, skill_id))
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
+    }
+    
+    /// Level up skill for a character
+    pub fn level_up_skill(&mut self, character_id: &str, tree_id: &str, skill_id: &str, experience: u32) -> Result<bool, String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get_mut(character_id) {
+            Ok(enhanced_progression.experience_system.skill_tree_progression.level_up_skill(tree_id, skill_id, experience))
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
+    }
+    
+    /// Activate skill for a character
+    pub fn activate_skill(&mut self, character_id: &str, tree_id: &str, skill_id: &str) -> Result<bool, String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get_mut(character_id) {
+            Ok(enhanced_progression.experience_system.skill_tree_progression.activate_skill(tree_id, skill_id))
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
+    }
+    
+    /// Deactivate skill for a character
+    pub fn deactivate_skill(&mut self, character_id: &str, tree_id: &str, skill_id: &str) -> Result<bool, String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get_mut(character_id) {
+            Ok(enhanced_progression.experience_system.skill_tree_progression.deactivate_skill(tree_id, skill_id))
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
+    }
+    
+    /// Get progression statistics for a character
+    pub fn get_enhanced_progression_stats(&self, character_id: &str) -> Result<&crate::game::characters::enhanced_progression::ProgressionStatistics, String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get(character_id) {
+            Ok(enhanced_progression.get_statistics())
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
+    }
+    
+    /// Get total bonus multiplier for a character
+    pub fn get_total_bonus_multiplier(&self, character_id: &str) -> Result<f32, String> {
+        if let Some(enhanced_progression) = self.enhanced_progression.get(character_id) {
+            Ok(enhanced_progression.get_total_bonus_multiplier())
+        } else {
+            Err(format!("Enhanced progression not initialized for character '{}'", character_id))
+        }
     }
 }
 

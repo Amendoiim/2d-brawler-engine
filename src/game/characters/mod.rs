@@ -16,11 +16,15 @@ pub mod character_roster;
 pub mod character_customization;
 pub mod character_progression;
 pub mod character_selection;
+pub mod skill_trees;
+pub mod enhanced_progression;
 
 pub use character_roster::*;
 pub use character_customization::*;
 pub use character_progression::*;
 pub use character_selection::*;
+pub use skill_trees::*;
+pub use enhanced_progression::*;
 
 /// Character component for ECS
 #[derive(Clone, Debug)]

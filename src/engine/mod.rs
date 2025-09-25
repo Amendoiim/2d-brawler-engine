@@ -11,6 +11,7 @@ pub mod animation;
 pub mod particles;
 pub mod level;
 pub mod localization;
+pub mod visual;
 
 use anyhow::Result;
 use winit::{
@@ -34,6 +35,7 @@ pub struct Engine {
     particles: particles::ParticleSystem,
     level_generator: level::LevelGenerator,
     localization: localization::manager::GameLocalizationManager,
+    visual_effects: visual::VisualEffectsManager,
 }
 
 impl Engine {
@@ -56,6 +58,7 @@ impl Engine {
         let particles = particles::ParticleSystem::new();
         let level_generator = level::LevelGenerator::new();
         let localization = localization::manager::GameLocalizationManager::new();
+        let visual_effects = visual::VisualEffectsManager::new();
 
         Ok(Self {
             platform,
@@ -70,6 +73,7 @@ impl Engine {
             particles,
             level_generator,
             localization,
+            visual_effects,
         })
     }
 
@@ -147,6 +151,16 @@ impl Engine {
         &self.localization
     }
 
+    /// Get mutable reference to visual effects manager
+    pub fn visual_effects_mut(&mut self) -> &mut visual::VisualEffectsManager {
+        &mut self.visual_effects
+    }
+
+    /// Get reference to visual effects manager
+    pub fn visual_effects(&self) -> &visual::VisualEffectsManager {
+        &self.visual_effects
+    }
+
     /// Load a scene
     pub fn load_scene(&mut self, name: &str) -> Result<()> {
         self.scene.load_scene(name, &mut self.ecs)
@@ -174,6 +188,9 @@ impl Engine {
         
         // Update particle system (commented out for now)
         // self.particles.update(&self.ecs, dt);
+        
+        // Update visual effects
+        self.visual_effects.update(0.016); // 60 FPS delta time
         
         // Update scene
         self.scene.update(dt, &mut self.ecs);

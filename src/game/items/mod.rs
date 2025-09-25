@@ -32,6 +32,8 @@ pub struct Item {
     pub stats: ItemStats,
     pub effects: Vec<ItemEffect>,
     pub tags: Vec<String>,
+    pub experience_bonus: Option<f32>,
+    pub experience_multiplier: Option<f32>,
 }
 
 /// Item types for categorization
@@ -305,6 +307,8 @@ impl ItemManager {
             },
             effects: template.base_effects.clone(),
             tags: vec![],
+            experience_bonus: None,
+            experience_multiplier: None,
         };
         
         self.items.insert(item.id.clone(), item.clone());
