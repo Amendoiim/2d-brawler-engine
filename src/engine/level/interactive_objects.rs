@@ -28,7 +28,7 @@ pub struct InteractiveObject {
 }
 
 /// Types of interactive objects
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum InteractiveObjectType {
     /// Destructible wall or barrier
     DestructibleWall,
@@ -298,8 +298,10 @@ impl InteractiveObjectManager {
     pub fn add_objects_to_level(&mut self, level: &mut Level) -> Result<(), String> {
         self.objects.clear();
 
-        for room in &level.rooms {
-            self.add_objects_to_room(level, room)?;
+        let room_count = level.rooms.len();
+        for i in 0..room_count {
+            let room = level.rooms[i].clone();
+            self.add_objects_to_room(level, &room)?;
         }
 
         Ok(())

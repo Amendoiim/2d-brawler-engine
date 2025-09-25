@@ -37,7 +37,7 @@ pub struct BackgroundLayer {
 }
 
 /// Types of background layers
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BackgroundLayerType {
     /// Static background layer
     Static,

@@ -521,6 +521,7 @@ impl AdvancedLevelGenerator {
                 },
                 RoomType::Empty => biome.floor_tile,
                 RoomType::Standard => biome.floor_tile,
+                RoomType::Puzzle => biome.floor_tile,
             };
 
             for x in room.x..room.x + room.width {
@@ -759,5 +760,3 @@ impl BSPNode {
         self.left.is_none() && self.right.is_none()
     }
 }
-
-use std::collections::HashSet;

@@ -20,7 +20,10 @@ use game::{Position, Velocity, Sprite, MovementSystem, InputMovementSystem,
           PlayerInputSystem, CharacterControllerSystem, CombatSystem, DamageSystem};
 use engine::animation::{Animation, AnimationFrame, AnimationController, FrameEffect};
 use engine::particles::ParticleEmitter;
-use engine::level::{LevelGenerator, LevelConfig, GenerationAlgorithm, AlgorithmParams};
+use engine::level::{LevelGenerator, LevelConfig, GenerationAlgorithm, AlgorithmParams, LevelType, LevelFilters, Checkpoint, CheckpointType, PlayerState};
+use glam::Vec2;
+use game::abilities::ResourceType;
+use game::combat::{SpecialMove, ResourceManager, ComboResult};
 
 /// Main application entry point
 fn main() -> Result<()> {
@@ -124,6 +127,18 @@ fn create_test_scene(engine: &mut Engine) {
     
     // Test level generation system
     test_level_generation_system(engine);
+    
+    // Test level types generation
+    test_level_types_generation(engine);
+
+    // Test level progression system
+    test_level_progression_system(engine);
+    
+    // Test advanced combat and abilities system
+    test_advanced_combat_system(engine);
+    
+    // Test character system
+    test_character_system(engine);
     
     info!("Created test scene with game systems");
 }
@@ -429,7 +444,7 @@ fn test_different_algorithms(engine: &mut Engine) {
     ];
     
     for algorithm in algorithms {
-        match engine.level_generator_mut().generate_level_advanced(config.clone(), algorithm) {
+        match engine.level_generator_mut().generate_level_advanced(config.clone(), algorithm.clone()) {
             Ok(level) => {
                 log::info!("Successfully generated level with {:?} algorithm", algorithm);
                 log::info!("  Level ID: {}", level.id);
@@ -515,7 +530,7 @@ fn test_interactive_objects_generation(engine: &mut Engine) {
             log::info!("Level with objects difficulty: {}", level.difficulty);
             
             // Get interactive objects
-            let interactive_objects = engine.level_generator().get_interactive_objects();
+            let interactive_objects = engine.level_generator_mut().get_interactive_objects();
             log::info!("Interactive objects count: {}", interactive_objects.len());
             
             // Count objects by type
@@ -540,7 +555,8 @@ fn test_interactive_objects_generation(engine: &mut Engine) {
                 
                 // Test damaging the object
                 if first_object.properties.destructible {
-                    match engine.level_generator_mut().damage_interactive_object(&first_object.id, 25.0) {
+                    let object_id = first_object.id.clone();
+                    match engine.level_generator_mut().damage_interactive_object(&object_id, 25.0) {
                         Ok(destroyed) => {
                             if destroyed {
                                 log::info!("  Object destroyed!");
@@ -575,7 +591,7 @@ fn test_background_layers_generation(engine: &mut Engine) {
                 log::info!("Successfully created background layers for biome: {}", biome);
                 
                 // Get background layers
-                let background_layers = engine.level_generator().get_background_layers();
+                let background_layers = engine.level_generator_mut().get_background_layers();
                 log::info!("  Background layers count: {}", background_layers.len());
                 
                 // Count layers by type
@@ -611,7 +627,7 @@ fn test_background_layers_generation(engine: &mut Engine) {
                 log::info!("  Updated background layers with camera movement");
                 
                 // Get visible layers
-                let visible_layers = engine.level_generator().get_visible_background_layers();
+                let visible_layers = engine.level_generator_mut().get_visible_background_layers();
                 log::info!("  Visible layers count: {}", visible_layers.len());
             },
             Err(e) => {
@@ -635,7 +651,7 @@ fn test_atmospheric_effects_generation(engine: &mut Engine) {
                 log::info!("Successfully created atmospheric effects for biome: {}", biome);
                 
                 // Get atmospheric effects
-                let atmospheric_effects = engine.level_generator().get_atmospheric_effects();
+                let atmospheric_effects = engine.level_generator_mut().get_atmospheric_effects();
                 log::info!("  Atmospheric effects count: {}", atmospheric_effects.len());
                 
                 // Count effects by type
@@ -672,11 +688,11 @@ fn test_atmospheric_effects_generation(engine: &mut Engine) {
                 log::info!("  Updated atmospheric effects");
                 
                 // Get active effects
-                let active_effects = engine.level_generator().get_active_atmospheric_effects();
+                let active_effects = engine.level_generator_mut().get_active_atmospheric_effects();
                 log::info!("  Active effects count: {}", active_effects.len());
                 
                 // Test global lighting
-                let global_lighting = engine.level_generator().get_global_lighting();
+                let global_lighting = engine.level_generator_mut().get_global_lighting();
                 log::info!("  Global lighting:");
                 log::info!("    Ambient color: [{:.2}, {:.2}, {:.2}, {:.2}]", 
                           global_lighting.ambient_color[0], global_lighting.ambient_color[1], 
@@ -692,7 +708,7 @@ fn test_atmospheric_effects_generation(engine: &mut Engine) {
                 log::info!("    Fog density: {:.2}", global_lighting.fog_density);
                 
                 // Test weather system
-                let weather_system = engine.level_generator().get_weather_system();
+                let weather_system = engine.level_generator_mut().get_weather_system();
                 log::info!("  Weather system:");
                 log::info!("    Current weather: {:?}", weather_system.current_weather);
                 log::info!("    Weather intensity: {:.2}", weather_system.weather_intensity);
@@ -705,4 +721,476 @@ fn test_atmospheric_effects_generation(engine: &mut Engine) {
             }
         }
     }
+}
+
+/// Test level types generation
+fn test_level_types_generation(engine: &mut Engine) {
+    log::info!("=== Testing Level Types Generation ===");
+    
+    let base_config = LevelConfig {
+        room_count_range: (3, 6),
+        room_size_range: (8, 12),
+        level_width: 40,
+        level_height: 30,
+        difficulty: 2,
+        biome_type: "forest".to_string(),
+        seed: Some(12345),
+    };
+
+    // Test Combat Arena
+    match engine.level_generator_mut().generate_combat_arena(base_config.clone(), 8, 12) {
+        Ok(level) => {
+            log::info!("✅ Combat Arena generated successfully: {}", level.id);
+            log::info!("  Dimensions: {}x{}", level.width, level.height);
+            log::info!("  Rooms: {}", level.rooms.len());
+            log::info!("  Spawn points: {}", level.spawn_points.len());
+            log::info!("  Biome: {}", level.biome);
+            log::info!("  Difficulty: {}", level.difficulty);
+        },
+        Err(e) => {
+            log::error!("❌ Failed to generate combat arena: {}", e);
+        }
+    }
+
+    // Test Platforming Level
+    match engine.level_generator_mut().generate_platforming_level(base_config.clone(), 6, 10, 8) {
+        Ok(level) => {
+            log::info!("✅ Platforming Level generated successfully: {}", level.id);
+            log::info!("  Dimensions: {}x{}", level.width, level.height);
+            log::info!("  Rooms: {}", level.rooms.len());
+            log::info!("  Spawn points: {}", level.spawn_points.len());
+            log::info!("  Biome: {}", level.biome);
+            log::info!("  Difficulty: {}", level.difficulty);
+        },
+        Err(e) => {
+            log::error!("❌ Failed to generate platforming level: {}", e);
+        }
+    }
+
+    // Test Puzzle Level
+    match engine.level_generator_mut().generate_puzzle_level(base_config.clone(), 4, 6, 3, 3) {
+        Ok(level) => {
+            log::info!("✅ Puzzle Level generated successfully: {}", level.id);
+            log::info!("  Dimensions: {}x{}", level.width, level.height);
+            log::info!("  Rooms: {}", level.rooms.len());
+            log::info!("  Spawn points: {}", level.spawn_points.len());
+            log::info!("  Biome: {}", level.biome);
+            log::info!("  Difficulty: {}", level.difficulty);
+        },
+        Err(e) => {
+            log::error!("❌ Failed to generate puzzle level: {}", e);
+        }
+    }
+
+    // Test Boss Arena
+    match engine.level_generator_mut().generate_boss_arena(base_config.clone(), "dragon".to_string(), (25, 18), 3) {
+        Ok(level) => {
+            log::info!("✅ Boss Arena generated successfully: {}", level.id);
+            log::info!("  Dimensions: {}x{}", level.width, level.height);
+            log::info!("  Rooms: {}", level.rooms.len());
+            log::info!("  Spawn points: {}", level.spawn_points.len());
+            log::info!("  Biome: {}", level.biome);
+            log::info!("  Difficulty: {}", level.difficulty);
+        },
+        Err(e) => {
+            log::error!("❌ Failed to generate boss arena: {}", e);
+        }
+    }
+
+    // Test Standard Level
+    match engine.level_generator_mut().generate_standard_level(base_config.clone(), 0.6, 0.4) {
+        Ok(level) => {
+            log::info!("✅ Standard Level generated successfully: {}", level.id);
+            log::info!("  Dimensions: {}x{}", level.width, level.height);
+            log::info!("  Rooms: {}", level.rooms.len());
+            log::info!("  Spawn points: {}", level.spawn_points.len());
+            log::info!("  Biome: {}", level.biome);
+            log::info!("  Difficulty: {}", level.difficulty);
+        },
+        Err(e) => {
+            log::error!("❌ Failed to generate standard level: {}", e);
+        }
+    }
+
+    // Test available level types
+    let available_types = engine.level_generator_mut().get_available_level_types();
+    log::info!("Available level types: {:?}", available_types);
+
+    // Test level type templates
+    for level_type in &available_types {
+        if let Some(template) = engine.level_generator_mut().get_level_type_template(level_type) {
+            log::info!("Template for {:?}:", level_type);
+            log::info!("  Room patterns: {}", template.room_patterns.len());
+            log::info!("  Tile rules: {}", template.tile_rules.len());
+            log::info!("  Object rules: {}", template.object_rules.len());
+            log::info!("  Spawn rules: {}", template.spawn_rules.len());
+        }
+    }
+}
+
+/// Test the level progression system
+fn test_level_progression_system(engine: &mut Engine) {
+    info!("Testing level progression system...");
+
+    // Test level selection and display
+    {
+        let level_progression = engine.level_generator_mut().get_level_progression_manager_mut();
+        let all_levels = level_progression.get_all_levels();
+        info!("Available levels: {}", all_levels.len());
+        
+        for (level_id, level_info) in all_levels {
+            info!("Level: {} - {} (Type: {:?}, Difficulty: {}, Unlocked: {})", 
+                  level_id, level_info.name, level_info.level_type, level_info.difficulty, level_info.unlocked);
+        }
+    }
+
+    // Test level filtering
+    {
+        let mut filters = LevelFilters::default();
+        filters.difficulty_range = Some((1, 3));
+        filters.level_types = vec![LevelType::CombatArena, LevelType::Standard];
+        
+        engine.level_generator_mut().set_level_filters(filters);
+        let filtered_levels = engine.level_generator_mut().get_filtered_levels();
+        info!("Filtered levels (difficulty 1-3, combat/standard): {}", filtered_levels.len());
+    }
+
+    // Test level selection
+    {
+        let level_id = {
+            let level_progression = engine.level_generator_mut().get_level_progression_manager_mut();
+            let all_levels = level_progression.get_all_levels();
+            all_levels.keys().next().map(|s| s.clone())
+        };
+        
+        if let Some(level_id) = level_id {
+            match engine.level_generator_mut().select_level(&level_id) {
+                Ok(_) => info!("Successfully selected level: {}", level_id),
+                Err(e) => info!("Failed to select level {}: {}", level_id, e),
+            }
+        }
+    }
+
+    // Test player progress
+    {
+        let player_progress = engine.level_generator_mut().get_player_progress();
+        info!("Player level: {}, Experience: {}/{}", 
+              player_progress.level, player_progress.experience, player_progress.experience_to_next);
+
+        // Test adding experience
+        engine.level_generator_mut().add_experience(150);
+        let updated_progress = engine.level_generator_mut().get_player_progress();
+        info!("After adding 150 XP - Level: {}, Experience: {}/{}", 
+              updated_progress.level, updated_progress.experience, updated_progress.experience_to_next);
+    }
+
+    // Test checkpoint system
+    {
+        let checkpoint = Checkpoint {
+            id: "test_checkpoint_1".to_string(),
+            position: Vec2::new(25.0, 25.0),
+            checkpoint_type: CheckpointType::Standard,
+            active: true,
+            reached: false,
+            reached_time: None,
+            player_state: None,
+        };
+
+        engine.level_generator_mut().create_checkpoint(checkpoint);
+
+        let player_state = PlayerState {
+            position: Vec2::new(25.0, 25.0),
+            health: 100.0,
+            experience: 200,
+            level: 2,
+            inventory: vec!["sword".to_string(), "potion".to_string()],
+            abilities: vec!["dash".to_string()],
+        };
+
+        match engine.level_generator_mut().reach_checkpoint("test_checkpoint_1", player_state) {
+            Ok(_) => info!("Successfully reached checkpoint: test_checkpoint_1"),
+            Err(e) => info!("Failed to reach checkpoint: {}", e),
+        }
+    }
+
+    // Test level completion and rewards
+    {
+        let level_id = {
+            let level_progression = engine.level_generator_mut().get_level_progression_manager_mut();
+            let all_levels = level_progression.get_all_levels();
+            all_levels.keys().next().map(|s| s.clone())
+        };
+        
+        if let Some(level_id) = level_id {
+            match engine.level_generator_mut().complete_level(&level_id, 120.5, 3) {
+                Ok(rewards) => {
+                    info!("Level {} completed! Received {} rewards:", level_id, rewards.len());
+                    for reward in rewards {
+                        info!("  - {:?}: {} ({})", reward.reward_type, reward.value, reward.description);
+                    }
+                },
+                Err(e) => info!("Failed to complete level {}: {}", level_id, e),
+            }
+        }
+    }
+
+    // Test level categories
+    {
+        let categories = engine.level_generator_mut().get_level_progression_manager().get_level_categories();
+        info!("Level categories: {}", categories.len());
+        for category in categories {
+            info!("Category: {} - {} ({} levels)", category.name, category.description, category.levels.len());
+        }
+    }
+
+    info!("Level progression system test completed successfully");
+}
+
+/// Test the advanced combat and abilities systems
+fn test_advanced_combat_system(engine: &mut Engine) {
+    info!("Testing Advanced Combat and Abilities System...");
+
+    // Test combo system
+    {
+        use game::combat::*;
+        
+        let mut combo = Combo::default();
+        let mut combo_processor = ComboInputProcessor::new();
+        let current_time = 0.0;
+
+        // Test basic combo
+        let result = combo_processor.process_input(&mut combo, ComboInput::LightAttack, current_time);
+        info!("Combo input result: {:?}", result);
+
+        let result = combo_processor.process_input(&mut combo, ComboInput::LightAttack, current_time + 0.1);
+        info!("Second combo input result: {:?}", result);
+
+        let result = combo_processor.process_input(&mut combo, ComboInput::HeavyAttack, current_time + 0.2);
+        info!("Third combo input result: {:?}", result);
+    }
+
+    // Test special moves system
+    {
+        use game::combat::*;
+        
+        let mut special_move = SpecialMove::new(
+            "fireball".to_string(),
+            "Fireball".to_string(),
+            2.0,
+            20.0,
+            ResourceType::Mana,
+        );
+        
+        let mut resource_manager = ResourceManager::new();
+        resource_manager.resources.insert(ResourceType::Mana, 100.0);
+        
+        info!("Special move '{}' can execute: {}", special_move.name, special_move.can_execute(&resource_manager.resources));
+        
+        if special_move.can_execute(&resource_manager.resources) {
+            special_move.start_execution();
+            resource_manager.consume_resource(ResourceType::Mana, special_move.resource_cost);
+            info!("Special move '{}' executed successfully", special_move.name);
+        }
+    }
+
+    // Test defense system
+    {
+        use game::combat::*;
+        
+        let mut defense = Defense::default();
+        let mut defense_system = DefenseSystem::new();
+        
+        // Test blocking
+        if defense_system.start_block(&mut defense, BlockType::Heavy) {
+            info!("Heavy block activated successfully");
+        }
+        
+        // Test parrying
+        if defense_system.start_parry(&mut defense, ParryType::Perfect) {
+            info!("Perfect parry activated successfully");
+        }
+        
+        // Test dodging
+        if defense_system.start_dodge(&mut defense, DodgeDirection::Backward) {
+            info!("Backward dodge activated successfully");
+        }
+    }
+
+    // Test character abilities system
+    {
+        use game::abilities::*;
+        
+        let character_creation = CharacterCreationSystem::new();
+        let available_classes = character_creation.get_available_classes();
+        
+        info!("Available character classes: {}", available_classes.len());
+        for class in &available_classes {
+            info!("  - {}: {}", class.name(), class.description());
+        }
+        
+        // Create a Fighter character
+        let fighter = character_creation.create_character(CharacterClass::Fighter, "Test Fighter".to_string());
+        info!("Created {} character: {} (Level {})", fighter.class.name(), fighter.name, fighter.level);
+        info!("  Stats: STR={}, AGI={}, INT={}, VIT={}", 
+               fighter.stats.strength, fighter.stats.agility, 
+               fighter.stats.intelligence, fighter.stats.vitality);
+        info!("  Health: {}, Mana: {}, Stamina: {}", 
+               fighter.stats.calculate_health(), 
+               fighter.stats.calculate_mana(), 
+               fighter.stats.calculate_stamina());
+        
+        // Test ability tree
+        if let Some(tree) = fighter.abilities.get_ability_tree("Fighter") {
+            let unlocked_abilities = tree.get_unlocked_abilities();
+            info!("Fighter has {} unlocked abilities:", unlocked_abilities.len());
+            for ability in unlocked_abilities {
+                info!("  - {} (Level {})", ability.name, ability.level);
+            }
+            
+            let available_abilities = tree.get_available_abilities();
+            info!("Fighter has {} available abilities to unlock:", available_abilities.len());
+            for ability in available_abilities {
+                info!("  - {} (Cost: {})", ability.name, ability.cost);
+            }
+        }
+    }
+
+    // Test ability effects
+    {
+        use game::abilities::*;
+        
+        let mut effect_system = AbilityEffectSystem::new();
+        let target_entity = 1;
+        
+        // Test applying effects
+        let effect = AbilityEffect::DamageBonus { multiplier: 0.5 };
+        let effect_id = effect_system.processor.apply_effect(effect, target_entity, 10.0);
+        info!("Applied damage bonus effect: {}", effect_id);
+        
+        let damage_bonus = effect_system.processor.calculate_damage_bonus(target_entity);
+        info!("Damage bonus for entity {}: {:.2}x", target_entity, damage_bonus);
+        
+        let defense_bonus = effect_system.processor.calculate_defense_bonus(target_entity);
+        info!("Defense bonus for entity {}: {:.2}x", target_entity, defense_bonus);
+        
+        let speed_bonus = effect_system.processor.calculate_speed_bonus(target_entity);
+        info!("Speed bonus for entity {}: {:.2}x", target_entity, speed_bonus);
+    }
+
+    info!("Advanced combat and abilities system test completed successfully");
+}
+
+/// Test the character system
+fn test_character_system(engine: &mut Engine) {
+    info!("Testing Character System...");
+    
+    use game::characters::*;
+    
+    // Test character roster
+    let mut roster = CharacterRoster::new();
+    info!("Character roster created with {} templates", roster.get_template_count());
+    
+    // Test character creation from template
+    let fighter_template = roster.get_template("fighter_template").unwrap();
+    let mut fighter = roster.create_character_from_template("fighter_template", "Test Fighter".to_string()).unwrap();
+    info!("Created Fighter character: {} (Level {})", fighter.name, fighter.level);
+    info!("  Stats: STR={}, AGI={}, INT={}, VIT={}", 
+        fighter.stats.strength, fighter.stats.agility, fighter.stats.intelligence, fighter.stats.vitality);
+    info!("  Health: {}, Mana: {}, Stamina: {}", 
+        fighter.status.max_health, fighter.status.max_mana, fighter.status.max_stamina);
+    
+    // Test character leveling
+    fighter.add_experience(150);
+    if fighter.can_level_up() {
+        fighter.level_up();
+        info!("Fighter leveled up to level {}!", fighter.level);
+        info!("  New Stats: STR={}, AGI={}, INT={}, VIT={}", 
+            fighter.stats.strength, fighter.stats.agility, fighter.stats.intelligence, fighter.stats.vitality);
+    }
+    
+    // Test character customization
+    let mut customization = CharacterCustomization::new();
+    let mut appearance = fighter.appearance.clone();
+    appearance.hair_color = [0.8, 0.6, 0.2]; // Blonde hair
+    appearance.eye_color = [0.2, 0.8, 0.2]; // Green eyes
+    customization.customize_appearance(&mut fighter, appearance);
+    info!("Customized fighter appearance");
+    
+    // Test character progression
+    let mut progression = CharacterProgression::new();
+    progression.add_character(fighter.id.clone(), &fighter);
+    let events = progression.add_experience(&fighter.id, 500).unwrap();
+    info!("Added 500 XP to fighter, generated {} progression events", events.len());
+    
+    // Test character selection
+    let mut selection = CharacterSelection::new();
+    selection.add_character(fighter);
+    
+    // Create additional characters for testing
+    let mage = roster.create_character_from_template("mage_template", "Test Mage".to_string()).unwrap();
+    let ranger = roster.create_character_from_template("ranger_template", "Test Ranger".to_string()).unwrap();
+    
+    selection.add_character(mage);
+    selection.add_character(ranger);
+    
+    info!("Character selection has {} characters", selection.get_character_count());
+    
+    // Test character filtering and sorting
+    let filtered_characters = selection.get_filtered_characters();
+    info!("Filtered characters: {}", filtered_characters.len());
+    
+    // Test character comparison
+    let character_ids: Vec<String> = selection.characters.keys().cloned().collect();
+    if character_ids.len() >= 2 {
+        selection.start_character_comparison(character_ids[0..2].to_vec()).unwrap();
+        let comparison_stats = selection.get_comparison_stats();
+        info!("Character comparison stats: {}", comparison_stats.len());
+        for (stat_name, stat) in comparison_stats {
+            info!("  {}: {} values", stat.name, stat.values.len());
+        }
+        selection.stop_character_comparison();
+    }
+    
+    // Test character statistics
+    let stats = selection.get_character_statistics();
+    info!("Character statistics:");
+    info!("  Total characters: {}", stats.total_characters);
+    info!("  Average level: {:.1}", stats.average_level);
+    info!("  Total experience: {}", stats.total_experience);
+    info!("  Characters by class: {:?}", stats.characters_by_class);
+    
+    // Test character damage and abilities
+    let fighter = selection.get_character(&character_ids[0]).unwrap();
+    info!("Fighter combat stats:");
+    info!("  Total damage: {:.1}", fighter.get_total_damage());
+    info!("  Total defense: {:.1}", fighter.get_total_defense());
+    info!("  Movement speed: {:.1}", fighter.get_movement_speed());
+    info!("  Health percentage: {:.1}%", fighter.get_health_percentage() * 100.0);
+    info!("  Mana percentage: {:.1}%", fighter.get_mana_percentage() * 100.0);
+    info!("  Stamina percentage: {:.1}%", fighter.get_stamina_percentage() * 100.0);
+    
+    // Test character status effects
+    let mut fighter_mut = selection.get_character_mut(&character_ids[0]).unwrap();
+    fighter_mut.add_status_effect(StatusEffect {
+        id: "test_effect".to_string(),
+        effect_type: "poison".to_string(),
+        duration: 10.0,
+        intensity: 5.0,
+        source: "test".to_string(),
+    });
+    info!("Added status effect to fighter");
+    
+    fighter_mut.update_status_effects(1.0);
+    info!("Updated status effects, {} active effects", fighter_mut.status.status_effects.len());
+    
+    // Test character damage
+    fighter_mut.take_damage(50.0, Some("test_enemy".to_string()));
+    info!("Fighter took 50 damage, health: {:.1}/{:.1}", 
+        fighter_mut.status.health, fighter_mut.status.max_health);
+    
+    fighter_mut.heal(25.0);
+    info!("Fighter healed 25, health: {:.1}/{:.1}", 
+        fighter_mut.status.health, fighter_mut.status.max_health);
+    
+    info!("Character system test completed successfully");
 }

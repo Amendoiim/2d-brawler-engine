@@ -8,6 +8,8 @@ pub mod biome_transition;
 pub mod interactive_objects;
 pub mod background_layers;
 pub mod atmospheric_effects;
+pub mod level_types;
+pub mod level_progression;
 pub mod pathfinding;
 
 pub use generator::*;
@@ -18,6 +20,13 @@ pub use biome_transition::*;
 pub use interactive_objects::*;
 pub use background_layers::*;
 pub use atmospheric_effects::*;
+pub use level_types::{LevelType, LevelTypeConfig, LevelTypeParams, LevelTypeManager, LevelTypeTemplate, RoomPattern, PatternRequirement, TileRule, TileCondition, ObjectRule, ObjectCondition, SpawnRule, SpawnType as LevelSpawnType};
+pub use level_progression::{
+    LevelProgressionManager, LevelInfo, PlayerProgress, PlayerStats, CheckpointSystem, Checkpoint, 
+    CheckpointType, CheckpointData, LevelState, PlayerState, RewardSystem, LevelReward, 
+    RewardType, RewardRequirement, RequirementType, RewardTemplate, LevelSelection, 
+    LevelCategory, LevelFilters, CompletionFilter
+};
 pub use pathfinding::*;
 
 use crate::engine::ecs::{Component, Entity, World};
@@ -44,6 +53,10 @@ pub struct LevelGenerator {
     pub background_layer_manager: BackgroundLayerManager,
     /// Atmospheric effects manager for weather and lighting
     pub atmospheric_effects_manager: AtmosphericEffectsManager,
+    /// Level type manager for different gameplay experiences
+    pub level_type_manager: LevelTypeManager,
+    /// Level progression manager for level selection, checkpoints, and rewards
+    pub level_progression_manager: LevelProgressionManager,
 }
 
 /// A complete generated level
@@ -99,6 +112,8 @@ impl LevelGenerator {
             interactive_object_manager: InteractiveObjectManager::new(),
             background_layer_manager: BackgroundLayerManager::new(),
             atmospheric_effects_manager: AtmosphericEffectsManager::new(),
+            level_type_manager: LevelTypeManager::new(),
+            level_progression_manager: LevelProgressionManager::new(),
         }
     }
 
@@ -585,6 +600,169 @@ impl LevelGenerator {
     /// Set atmospheric effect opacity
     pub fn set_atmospheric_effect_opacity(&mut self, effect_id: &str, opacity: f32) -> Result<(), String> {
         self.atmospheric_effects_manager.set_effect_opacity(effect_id, opacity)
+    }
+
+    /// Generate a combat arena level
+    pub fn generate_combat_arena(&mut self, config: LevelConfig, enemy_spawn_count: u32, cover_count: u32) -> Result<Level, String> {
+        let level_type_config = LevelTypeConfig {
+            level_type: LevelType::CombatArena,
+            base_config: config,
+            type_params: LevelTypeParams::CombatArena {
+                enemy_spawn_count,
+                cover_count,
+                size_multiplier: 1.5,
+                include_hazards: true,
+            },
+        };
+        let level = self.level_type_manager.generate_level_type(level_type_config)?;
+        self.current_level = Some(level.clone());
+        Ok(level)
+    }
+
+    /// Generate a platforming level
+    pub fn generate_platforming_level(&mut self, config: LevelConfig, moving_platforms: u32, static_platforms: u32, hazard_count: u32) -> Result<Level, String> {
+        let level_type_config = LevelTypeConfig {
+            level_type: LevelType::Platforming,
+            base_config: config,
+            type_params: LevelTypeParams::Platforming {
+                moving_platforms,
+                static_platforms,
+                hazard_count,
+                vertical_challenge: 1.5,
+            },
+        };
+        let level = self.level_type_manager.generate_level_type(level_type_config)?;
+        self.current_level = Some(level.clone());
+        Ok(level)
+    }
+
+    /// Generate a puzzle level
+    pub fn generate_puzzle_level(&mut self, config: LevelConfig, switch_count: u32, pressure_plate_count: u32, door_count: u32, complexity: u32) -> Result<Level, String> {
+        let level_type_config = LevelTypeConfig {
+            level_type: LevelType::Puzzle,
+            base_config: config,
+            type_params: LevelTypeParams::Puzzle {
+                switch_count,
+                pressure_plate_count,
+                door_count,
+                complexity,
+            },
+        };
+        let level = self.level_type_manager.generate_level_type(level_type_config)?;
+        self.current_level = Some(level.clone());
+        Ok(level)
+    }
+
+    /// Generate a boss arena level
+    pub fn generate_boss_arena(&mut self, config: LevelConfig, boss_type: String, arena_size: (u32, u32), phase_count: u32) -> Result<Level, String> {
+        let level_type_config = LevelTypeConfig {
+            level_type: LevelType::BossArena,
+            base_config: config,
+            type_params: LevelTypeParams::BossArena {
+                boss_type,
+                arena_size,
+                phase_count,
+                include_storytelling: true,
+            },
+        };
+        let level = self.level_type_manager.generate_level_type(level_type_config)?;
+        self.current_level = Some(level.clone());
+        Ok(level)
+    }
+
+    /// Generate a standard level
+    pub fn generate_standard_level(&mut self, config: LevelConfig, combat_ratio: f32, exploration_focus: f32) -> Result<Level, String> {
+        let level_type_config = LevelTypeConfig {
+            level_type: LevelType::Standard,
+            base_config: config,
+            type_params: LevelTypeParams::Standard {
+                combat_ratio,
+                exploration_focus,
+            },
+        };
+        let level = self.level_type_manager.generate_level_type(level_type_config)?;
+        self.current_level = Some(level.clone());
+        Ok(level)
+    }
+
+    /// Get available level types
+    pub fn get_available_level_types(&self) -> Vec<LevelType> {
+        self.level_type_manager.get_available_level_types()
+    }
+
+    /// Get level type template
+    pub fn get_level_type_template(&self, level_type: &LevelType) -> Option<&LevelTypeTemplate> {
+        self.level_type_manager.get_template(level_type)
+    }
+
+    /// Get level progression manager
+    pub fn get_level_progression_manager(&self) -> &LevelProgressionManager {
+        &self.level_progression_manager
+    }
+
+    /// Get level progression manager (mutable)
+    pub fn get_level_progression_manager_mut(&mut self) -> &mut LevelProgressionManager {
+        &mut self.level_progression_manager
+    }
+
+    /// Complete a level and get rewards
+    pub fn complete_level(&mut self, level_id: &str, completion_time: f32, star_rating: u32) -> Result<Vec<LevelReward>, String> {
+        self.level_progression_manager.complete_level(level_id, completion_time, star_rating)
+    }
+
+    /// Create a checkpoint
+    pub fn create_checkpoint(&mut self, checkpoint: Checkpoint) {
+        self.level_progression_manager.create_checkpoint(checkpoint);
+    }
+
+    /// Reach a checkpoint
+    pub fn reach_checkpoint(&mut self, checkpoint_id: &str, player_state: PlayerState) -> Result<(), String> {
+        self.level_progression_manager.reach_checkpoint(checkpoint_id, player_state)
+    }
+
+    /// Get checkpoint data
+    pub fn get_checkpoint_data(&self, checkpoint_id: &str) -> Option<&CheckpointData> {
+        self.level_progression_manager.get_checkpoint_data(checkpoint_id)
+    }
+
+    /// Get last checkpoint
+    pub fn get_last_checkpoint(&self) -> Option<&str> {
+        self.level_progression_manager.get_last_checkpoint()
+    }
+
+    /// Get player progress
+    pub fn get_player_progress(&self) -> &PlayerProgress {
+        self.level_progression_manager.get_player_progress()
+    }
+
+    /// Add experience to player
+    pub fn add_experience(&mut self, amount: u32) {
+        self.level_progression_manager.add_experience(amount);
+    }
+
+    /// Get filtered levels
+    pub fn get_filtered_levels(&self) -> Vec<&LevelInfo> {
+        self.level_progression_manager.get_filtered_levels()
+    }
+
+    /// Set level filters
+    pub fn set_level_filters(&mut self, filters: LevelFilters) {
+        self.level_progression_manager.set_level_filters(filters);
+    }
+
+    /// Select a level
+    pub fn select_level(&mut self, level_id: &str) -> Result<(), String> {
+        self.level_progression_manager.select_level(level_id)
+    }
+
+    /// Get selected level
+    pub fn get_selected_level(&self) -> Option<&str> {
+        self.level_progression_manager.get_selected_level()
+    }
+
+    /// Claim a reward
+    pub fn claim_reward(&mut self, level_id: &str, reward_id: &str) -> Result<(), String> {
+        self.level_progression_manager.claim_reward(level_id, reward_id)
     }
 }
 

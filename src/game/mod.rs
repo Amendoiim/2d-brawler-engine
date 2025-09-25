@@ -4,6 +4,7 @@ pub mod combat;
 pub mod characters;
 pub mod levels;
 pub mod progression;
+pub mod abilities;
 
 use crate::engine::ecs::{World, Component, System, Entity};
 
@@ -15,6 +16,12 @@ impl Component for Health {}
 impl Component for Player {}
 impl Component for Combat {}
 impl Component for Attack {}
+
+// Import ability components
+use abilities::*;
+
+// Import character components
+use characters::*;
 
 /// Game state management
 pub struct GameState {

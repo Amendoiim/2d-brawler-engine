@@ -32,7 +32,7 @@ pub struct AtmosphericEffect {
 }
 
 /// Types of atmospheric effects
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AtmosphericEffectType {
     /// Rain effect
     Rain,
@@ -482,12 +482,16 @@ impl AtmosphericEffectsManager {
     pub fn create_biome_effects(&mut self, biome: &str, level_width: f32, level_height: f32) -> Result<(), String> {
         self.effects.clear();
 
-        // Get biome information
+        // Get biome information and clone it to avoid borrowing issues
         let biome_info = self.biome_manager.get_biome(biome)
-            .ok_or_else(|| format!("Unknown biome: {}", biome))?;
+            .ok_or_else(|| format!("Unknown biome: {}", biome))?
+            .clone();
+
+        // Clone the effects to avoid borrowing issues
+        let effects = biome_info.effects.clone();
 
         // Create effects based on biome's environmental effects
-        for environmental_effect in &biome_info.effects {
+        for environmental_effect in &effects {
             match environmental_effect {
                 EnvironmentalEffect::Rain { intensity } => {
                     self.create_effect(AtmosphericEffectType::Rain, *intensity, level_width, level_height, biome)?;
@@ -517,7 +521,7 @@ impl AtmosphericEffectsManager {
         }
 
         // Update global lighting based on biome
-        self.update_global_lighting_for_biome(biome_info);
+        self.update_global_lighting_for_biome(&biome_info);
 
         Ok(())
     }

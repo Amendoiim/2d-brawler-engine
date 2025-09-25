@@ -21,7 +21,7 @@ pub struct Room {
 }
 
 /// Types of rooms that can be generated
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RoomType {
     /// Standard room with enemies and items
     Standard,
@@ -33,6 +33,8 @@ pub enum RoomType {
     Treasure,
     /// Empty room (rare)
     Empty,
+    /// Puzzle room with interactive elements
+    Puzzle,
     /// Shop room with merchants
     Shop,
 }
