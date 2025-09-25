@@ -7,6 +7,8 @@ pub mod input;
 pub mod ecs;
 pub mod scene;
 pub mod asset;
+pub mod animation;
+pub mod particles;
 
 use anyhow::Result;
 use winit::{
@@ -26,6 +28,8 @@ pub struct Engine {
     ecs: ecs::World,
     scene: scene::SceneManager,
     asset_manager: asset::AssetManager,
+    animation: animation::AnimationSystem,
+    particles: particles::ParticleSystem,
 }
 
 impl Engine {
@@ -44,6 +48,8 @@ impl Engine {
         let ecs = ecs::World::new();
         let scene = scene::SceneManager::new();
         let asset_manager = asset::AssetManager::new()?;
+        let animation = animation::AnimationSystem::new();
+        let particles = particles::ParticleSystem::new();
 
         Ok(Self {
             platform,
@@ -54,6 +60,8 @@ impl Engine {
             ecs,
             scene,
             asset_manager,
+            animation,
+            particles,
         })
     }
 
@@ -106,6 +114,16 @@ impl Engine {
         &mut self.scene
     }
 
+    /// Get mutable reference to animation system
+    pub fn animation_mut(&mut self) -> &mut animation::AnimationSystem {
+        &mut self.animation
+    }
+
+    /// Get mutable reference to particle system
+    pub fn particles_mut(&mut self) -> &mut particles::ParticleSystem {
+        &mut self.particles
+    }
+
     /// Load a scene
     pub fn load_scene(&mut self, name: &str) -> Result<()> {
         self.scene.load_scene(name, &mut self.ecs)
@@ -127,6 +145,12 @@ impl Engine {
         
         // Update ECS systems
         self.ecs.update(dt);
+        
+        // Update animation system
+        self.animation.update(&mut self.ecs, dt);
+        
+        // Update particle system (commented out for now)
+        // self.particles.update(&self.ecs, dt);
         
         // Update scene
         self.scene.update(dt, &mut self.ecs);

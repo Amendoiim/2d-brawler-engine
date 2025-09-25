@@ -18,6 +18,8 @@ mod platform;
 use engine::Engine;
 use game::{Position, Velocity, Sprite, MovementSystem, InputMovementSystem, 
           PlayerInputSystem, CharacterControllerSystem, CombatSystem, DamageSystem};
+use engine::animation::{Animation, AnimationFrame, AnimationController, FrameEffect};
+use engine::particles::ParticleEmitter;
 
 /// Main application entry point
 fn main() -> Result<()> {
@@ -113,6 +115,12 @@ fn create_test_scene(engine: &mut Engine) {
     // Test game systems
     test_game_systems(engine);
     
+    // Test animation system
+    test_animation_system(engine);
+    
+    // Test particle system (commented out for now)
+    // test_particle_system(engine);
+    
     info!("Created test scene with game systems");
 }
 
@@ -196,4 +204,114 @@ fn test_game_systems(engine: &mut Engine) {
     log::info!("Started scene transition to level_2");
     
     log::info!("Game systems test completed");
+}
+
+/// Test the animation system
+fn test_animation_system(engine: &mut Engine) {
+    // Create test animations
+    let idle_animation = Animation::new("idle".to_string())
+        .set_looping(true)
+        .set_speed(1.0)
+        .set_priority(1);
+
+    // Add frames to idle animation
+    for i in 0..4 {
+        let frame = AnimationFrame {
+            texture_id: 1000 + i,
+            duration: 0.25,
+            offset_x: i as f32 * 32.0,
+            offset_y: 0.0,
+            width: 32.0,
+            height: 32.0,
+            color: [1.0, 1.0, 1.0, 1.0],
+            effects: Vec::new(),
+        };
+        idle_animation.add_frame(frame);
+    }
+
+    let walk_animation = Animation::new("walk".to_string())
+        .set_looping(true)
+        .set_speed(1.5)
+        .set_priority(2);
+
+    // Add frames to walk animation
+    for i in 0..6 {
+        let frame = AnimationFrame {
+            texture_id: 2000 + i,
+            duration: 0.15,
+            offset_x: i as f32 * 32.0,
+            offset_y: 32.0,
+            width: 32.0,
+            height: 32.0,
+            color: [1.0, 1.0, 1.0, 1.0],
+            effects: Vec::new(),
+        };
+        walk_animation.add_frame(frame);
+    }
+
+    let attack_animation = Animation::new("attack".to_string())
+        .set_looping(false)
+        .set_speed(2.0)
+        .set_priority(3);
+
+    // Add frames to attack animation
+    for i in 0..3 {
+        let frame = AnimationFrame {
+            texture_id: 3000 + i,
+            duration: 0.1,
+            offset_x: i as f32 * 32.0,
+            offset_y: 64.0,
+            width: 32.0,
+            height: 32.0,
+            color: [1.0, 1.0, 1.0, 1.0],
+            effects: vec![
+                if i == 1 {
+                    FrameEffect::ScreenShake { intensity: 0.1, duration: 0.1 }
+                } else {
+                    FrameEffect::SoundEffect { sound_name: "attack".to_string(), volume: 0.8 }
+                }
+            ],
+        };
+        attack_animation.add_frame(frame);
+    }
+
+    // Register animations
+    engine.animation_mut().register_animation("idle".to_string(), idle_animation);
+    engine.animation_mut().register_animation("walk".to_string(), walk_animation);
+    engine.animation_mut().register_animation("attack".to_string(), attack_animation);
+
+    // Create animation controllers for player entities
+    let player_entities = engine.ecs_mut().query::<game::Player>();
+    for entity in player_entities {
+        let controller = AnimationController::create_character_controller(entity);
+        engine.animation_mut().add_controller(entity, controller);
+    }
+
+    log::info!("Animation system test completed. Registered {} animations", 3);
+}
+
+/// Test the particle system
+fn test_particle_system(engine: &mut Engine) {
+    // Create test particle effects
+    let player_entities = engine.ecs_mut().query::<game::Player>();
+    
+    for (i, entity) in player_entities.iter().enumerate() {
+        // Create explosion effect for first player
+        if i == 0 {
+            engine.particles_mut().create_explosion_effect(*entity, glam::Vec2::new(100.0, 100.0), 1.0);
+        }
+        
+        // Create trail effect for all players
+        engine.particles_mut().create_trail_effect(*entity, glam::Vec2::new(50.0 + i as f32 * 100.0, 200.0));
+    }
+
+    // Create spark effects
+    let spark_entity = engine.ecs_mut().create_entity();
+    engine.particles_mut().create_spark_effect(
+        spark_entity,
+        glam::Vec2::new(300.0, 300.0),
+        glam::Vec2::new(1.0, 0.0)
+    );
+
+    log::info!("Particle system test completed. Created particle effects for {} entities", player_entities.len());
 }
