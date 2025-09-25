@@ -137,10 +137,10 @@ docs/                 # Technical documentation
 - [x] **Functional ECS** - Query system and system manager implemented
 - [x] **Input Processing** - Full keyboard, mouse, and action mapping system
 - [x] **Physics Simulation** - Rapier2D physics integration with collision setup
-- [ ] **Audio Playback** - Load and play actual sound files
-- [ ] **Asset Loading** - Implement file loading and texture display
-- [ ] **Game Logic** - Character movement and basic combat
-- [ ] **Scene Management** - Real scene loading and transitions
+- [x] **Audio Playback** - Load and play actual sound files with volume control
+- [x] **Asset Loading** - Implement file loading and texture display with caching
+- [x] **Game Logic** - Character movement and basic combat systems implemented
+- [x] **Scene Management** - Real scene loading and transitions with entity spawning
 
 ### Phase 3: Game Content (Planned)
 - [ ] **Character Animation** - Sprite-based character animations

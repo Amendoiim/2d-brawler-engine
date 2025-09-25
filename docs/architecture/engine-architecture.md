@@ -20,10 +20,10 @@ The 2D Brawler Engine is built using a modular architecture designed for high pe
 - [x] **Functional ECS** - Query system and system manager with borrowing fixes
 - [x] **Input Processing** - Full keyboard, mouse, and action mapping system
 - [x] **Physics Simulation** - Rapier2D physics integration with collision setup
-- [ ] **Audio Playback** - Load and play actual sound files
-- [ ] **Asset Loading** - Implement file loading and texture display
-- [ ] **Game Logic** - Character movement and basic combat
-- [ ] **Scene Management** - Real scene loading and transitions
+- [x] **Audio Playback** - Load and play actual sound files with volume control
+- [x] **Asset Loading** - Implement file loading and texture display with caching
+- [x] **Game Logic** - Character movement and basic combat systems implemented
+- [x] **Scene Management** - Real scene loading and transitions with entity spawning
 
 ## Core Architecture Principles
 

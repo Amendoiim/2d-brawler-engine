@@ -78,7 +78,7 @@ impl Engine {
         self.platform.update_timing();
         
         // Update systems
-        self.update()?;
+        self.update_internal()?;
         
         // Render frame
         self.renderer.render(&self.ecs)?;
@@ -91,10 +91,28 @@ impl Engine {
         &mut self.ecs
     }
 
-    /// Update all engine systems
-    fn update(&mut self) -> Result<()> {
-        let dt = self.platform.delta_time();
-        
+    /// Get mutable reference to audio engine
+    pub fn audio_mut(&mut self) -> &mut audio::AudioEngine {
+        &mut self.audio
+    }
+
+    /// Get mutable reference to asset manager
+    pub fn asset_manager_mut(&mut self) -> &mut asset::AssetManager {
+        &mut self.asset_manager
+    }
+
+    /// Get mutable reference to scene manager
+    pub fn scene_mut(&mut self) -> &mut scene::SceneManager {
+        &mut self.scene
+    }
+
+    /// Load a scene
+    pub fn load_scene(&mut self, name: &str) -> Result<()> {
+        self.scene.load_scene(name, &mut self.ecs)
+    }
+
+    /// Update all engine systems with given delta time
+    pub fn update(&mut self, dt: f32) -> Result<()> {
         // Update input
         self.input.update();
         
@@ -104,6 +122,9 @@ impl Engine {
         // Update audio
         self.audio.update(dt);
         
+        // Update asset manager
+        self.asset_manager.update(dt)?;
+        
         // Update ECS systems
         self.ecs.update(dt);
         
@@ -111,5 +132,11 @@ impl Engine {
         self.scene.update(dt, &mut self.ecs);
         
         Ok(())
+    }
+
+    /// Update all engine systems (internal method)
+    fn update_internal(&mut self) -> Result<()> {
+        let dt = self.platform.delta_time();
+        self.update(dt)
     }
 }

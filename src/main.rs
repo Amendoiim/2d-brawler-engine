@@ -16,7 +16,8 @@ mod game;
 mod platform;
 
 use engine::Engine;
-use game::{Position, Velocity, Sprite, MovementSystem, InputMovementSystem};
+use game::{Position, Velocity, Sprite, MovementSystem, InputMovementSystem, 
+          PlayerInputSystem, CharacterControllerSystem, CombatSystem, DamageSystem};
 
 /// Main application entry point
 fn main() -> Result<()> {
@@ -69,6 +70,11 @@ fn main() -> Result<()> {
                 }
             }
             Event::AboutToWait => {
+                // Update engine systems
+                if let Err(e) = engine.update(0.016) { // ~60 FPS
+                    log::error!("Engine update error: {}", e);
+                }
+                
                 // Request a redraw
                 engine.window().request_redraw();
             }
@@ -81,22 +87,113 @@ fn main() -> Result<()> {
 
 /// Create a test scene with some basic entities
 fn create_test_scene(engine: &mut Engine) {
-    // Create a test entity with position, velocity, and sprite
-    let entity = engine.ecs_mut().create_entity();
+    // Create test scenes
+    engine.scene_mut().create_test_scene("level_1");
+    engine.scene_mut().create_test_scene("level_2");
     
-    engine.ecs_mut().add_component(entity, Position { x: 100.0, y: 100.0 });
-    engine.ecs_mut().add_component(entity, Velocity { x: 50.0, y: 25.0 });
-    engine.ecs_mut().add_component(entity, Sprite {
-        texture_id: 0,
-        width: 32.0,
-        height: 32.0,
-        color: [1.0, 0.0, 0.0, 1.0], // Red
-        visible: true,
-    });
+    // Load the first scene
+    if let Err(e) = engine.load_scene("level_1") {
+        log::error!("Failed to load scene: {}", e);
+    }
     
-    // Add movement systems
+    // Add game systems
     engine.ecs_mut().add_system(MovementSystem);
     engine.ecs_mut().add_system(InputMovementSystem::new());
+    engine.ecs_mut().add_system(PlayerInputSystem::new());
+    engine.ecs_mut().add_system(CharacterControllerSystem::new());
+    engine.ecs_mut().add_system(CombatSystem);
+    engine.ecs_mut().add_system(DamageSystem);
     
-    info!("Created test scene with entity {}", entity);
+    // Test audio system
+    test_audio_system(engine);
+    
+    // Test asset system
+    test_asset_system(engine);
+    
+    // Test game systems
+    test_game_systems(engine);
+    
+    info!("Created test scene with game systems");
+}
+
+/// Test the audio system
+fn test_audio_system(engine: &mut Engine) {
+    // Create test sounds
+    if let Err(e) = engine.audio_mut().create_test_sound("test_tone", 440.0, 1.0) {
+        log::error!("Failed to create test sound: {}", e);
+    }
+    
+    if let Err(e) = engine.audio_mut().create_test_sound("beep", 800.0, 0.5) {
+        log::error!("Failed to create beep sound: {}", e);
+    }
+    
+    // Set volume
+    engine.audio_mut().set_volume(0.5);
+    engine.audio_mut().set_music_volume(0.3);
+    
+    log::info!("Audio system test completed. Loaded {} sounds", engine.audio_mut().sound_count());
+}
+
+/// Test the asset system
+fn test_asset_system(engine: &mut Engine) {
+    // Create test textures
+    if let Err(e) = engine.asset_manager_mut().create_test_texture("red_square", 64, 64, [255, 0, 0]) {
+        log::error!("Failed to create test texture: {}", e);
+    }
+
+    if let Err(e) = engine.asset_manager_mut().create_test_texture("blue_circle", 32, 32, [0, 0, 255]) {
+        log::error!("Failed to create blue texture: {}", e);
+    }
+
+    // Test asset statistics
+    let stats = engine.asset_manager_mut().get_asset_statistics();
+    log::info!("Asset Statistics:");
+    for (key, value) in stats {
+        log::info!("  {}: {}", key, value);
+    }
+
+    // Test memory usage
+    let memory_usage = engine.asset_manager_mut().get_memory_usage();
+    let memory_percentage = engine.asset_manager_mut().get_memory_usage_percentage();
+    log::info!("Memory usage: {} bytes ({:.1}%)", memory_usage, memory_percentage);
+
+    // Test loading queue
+    let (queue_size, queue_items) = engine.asset_manager_mut().get_loading_queue_status();
+    log::info!("Loading queue: {} items", queue_size);
+    if !queue_items.is_empty() {
+        log::info!("  Queue items: {:?}", queue_items);
+    }
+
+    // Test asset access tracking
+    if let Some(texture_id) = engine.asset_manager_mut().get_texture("red_square") {
+        log::info!("Retrieved red_square texture with ID: {}", texture_id);
+    }
+
+    log::info!("Asset system test completed. Loaded {} assets", engine.asset_manager_mut().get_loaded_assets().len());
+}
+
+/// Test the game systems
+fn test_game_systems(engine: &mut Engine) {
+    // Test scene management
+    if let Some(current_scene) = engine.scene_mut().current_scene() {
+        log::info!("Current scene: {}", current_scene);
+    }
+    
+    // Test entity count
+    let entity_count = engine.ecs_mut().entity_count();
+    log::info!("ECS entity count: {}", entity_count);
+    
+    // Test player entities
+    let player_entities = engine.ecs_mut().query::<game::Player>();
+    log::info!("Player entities: {}", player_entities.len());
+    
+    // Test combat entities
+    let combat_entities = engine.ecs_mut().query::<game::Combat>();
+    log::info!("Combat entities: {}", combat_entities.len());
+    
+    // Test scene transition
+    engine.scene_mut().start_transition("level_2");
+    log::info!("Started scene transition to level_2");
+    
+    log::info!("Game systems test completed");
 }
