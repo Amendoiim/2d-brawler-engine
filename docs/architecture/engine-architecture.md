@@ -4,7 +4,7 @@
 
 The 2D Brawler Engine is built using a modular architecture designed for high performance, maintainability, and cross-platform compatibility. The engine follows modern game development patterns with a focus on the Entity-Component-System (ECS) paradigm.
 
-**Current Status:** Phase 1 Complete ✅ | Phase 2 Active 🚀
+**Current Status:** Phase 1 Complete ✅ | Phase 2 Complete ✅ | Phase 3 Active 🚀
 
 ## Development Phases
 
@@ -15,7 +15,7 @@ The 2D Brawler Engine is built using a modular architecture designed for high pe
 - **Game Components** - Combat, character, level, progression systems
 - **Platform Support** - Cross-platform compatibility foundation
 
-### Phase 2: Feature Implementation (Active 🚀)
+### Phase 2: Feature Implementation (Complete ✅)
 - [x] **Real Rendering** - WGPU sprite rendering foundation with ECS integration
 - [x] **Functional ECS** - Query system and system manager with borrowing fixes
 - [x] **Input Processing** - Full keyboard, mouse, and action mapping system
@@ -26,10 +26,12 @@ The 2D Brawler Engine is built using a modular architecture designed for high pe
 - [x] **Scene Management** - Real scene loading and transitions with entity spawning
 
 ### Phase 3: Game Content (Active 🚀)
-- [ ] **Character Animation** - Sprite-based character animations
+- [x] **Animation System** - Complete animation framework with state machine ✅ **Week 1 Complete**
+- [x] **Particle System** - Visual effects framework with physics simulation ✅ **Week 1 Complete**
+- [ ] **Character Animation Sets** - Specific animations for each character
 - [ ] **Level Generation** - Procedural level creation
 - [ ] **Combat Polish** - Advanced combat mechanics
-- [ ] **Visual Effects** - Particle systems and visual polish
+- [ ] **Visual Effects Polish** - Camera effects, lighting, and post-processing
 - [ ] **Character Variety** - Multiple playable characters and enemies
 - [ ] **Item System** - Equipment, consumables, and progression
 
@@ -66,6 +68,9 @@ The 2D Brawler Engine is built using a modular architecture designed for high pe
 │  └─────────────┘ └─────────────┘ └─────────────┘      │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐      │
 │  │    Input    │ │  Networking │ │    ECS      │      │
+│  └─────────────┘ └─────────────┘ └─────────────┘      │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐      │
+│  │  Animation  │ │  Particles  │ │    Scene    │      │
 │  └─────────────┘ └─────────────┘ └─────────────┘      │
 ├─────────────────────────────────────────────────────────┤
 │                  Platform Abstraction Layer            │
@@ -199,6 +204,50 @@ struct Collider {
 - **Action-Based Input:** Map physical inputs to game actions
 - **Input Buffering:** Frame-perfect input timing
 - **Customizable Controls:** Player-defined control schemes
+
+## Animation System
+
+### Animation Framework
+- **Frame-Based Animations:** Sprite sheet animation support
+- **State Machine:** Complex animation state transitions
+- **Animation Blending:** Smooth transitions between animations
+- **Event System:** Animation callbacks and triggers
+- **Performance Optimized:** Efficient frame lookup and caching
+
+### Animation Components
+- **AnimationState:** Current animation and frame data
+- **AnimationController:** Entity-specific animation logic
+- **AnimationFrame:** Individual frame data with effects
+- **AnimationTransition:** State transition definitions
+
+### Animation Features
+- **Frame Effects:** Screen shake, sound effects, particle triggers
+- **Animation Priority:** Layered animation system
+- **Looping Support:** Seamless animation loops
+- **Speed Control:** Variable animation playback speed
+- **Blend Weights:** Smooth animation transitions
+
+## Particle System
+
+### Particle Framework
+- **Physics Simulation:** Gravity, drag, bounce, and friction
+- **Visual Effects:** Color, size, and rotation changes over time
+- **Emission Patterns:** Various shapes and burst modes
+- **Memory Management:** Particle pooling for performance
+- **Performance Tracking:** Statistics and memory usage monitoring
+
+### Particle Components
+- **Particle:** Individual particle data and physics
+- **ParticleEmitter:** Emission source configuration
+- **ParticleFlags:** Behavior flags for particle effects
+- **ParticleSystem:** Global particle management
+
+### Particle Features
+- **Emission Shapes:** Point, circle, rectangle, line, and custom shapes
+- **Burst Emission:** One-time particle bursts
+- **Continuous Emission:** Ongoing particle streams
+- **Particle Lifecycle:** Birth, update, and death phases
+- **Visual Effects:** Explosions, trails, sparks, and environmental effects
 
 ## Networking System
 
