@@ -206,21 +206,28 @@ impl ParticleEmitter {
         }
 
         // Handle burst emission
+        let mut should_burst = false;
+        let mut particle_count = 0;
+        
         if let Some(burst) = &mut self.burst_settings {
             if burst.time_since_burst >= burst.burst_interval {
                 if burst.burst_count == -1 || burst.current_burst < burst.burst_count {
-                    let particle_count = burst.particle_count;
-                    // Create particles without borrowing self
-                    for _ in 0..particle_count {
-                        if let Some(particle) = self.create_particle() {
-                            particles.push(particle);
-                        }
-                    }
-                    self.particles_emitted += particle_count;
+                    should_burst = true;
+                    particle_count = burst.particle_count;
                     burst.time_since_burst = 0.0;
                     burst.current_burst += 1;
                 }
             }
+        }
+
+        if should_burst {
+            // Create particles without borrowing self
+            for _ in 0..particle_count {
+                if let Some(particle) = self.create_particle() {
+                    particles.push(particle);
+                }
+            }
+            self.particles_emitted += particle_count;
         } else {
             // Handle continuous emission
             let particles_to_emit = (self.emission_rate * dt) as usize;
@@ -233,6 +240,43 @@ impl ParticleEmitter {
         }
 
         particles
+    }
+
+    /// Create a single particle (internal method to avoid borrowing issues)
+    fn create_particle_internal(&mut self) -> Option<Particle> {
+        if self.max_particles > 0 && self.particles_emitted >= self.max_particles {
+            return None;
+        }
+
+        let position = self.get_emission_position();
+        let velocity = self.get_emission_velocity();
+        let life_time = self.get_random_value(self.life_range);
+        let color = self.get_random_color();
+        let scale = self.get_random_value(self.scale_range);
+        let mass = self.get_random_value(self.mass_range);
+        let drag = self.get_random_value(self.drag_range);
+
+        let particle = Particle {
+            position,
+            velocity,
+            acceleration: Vec2::ZERO,
+            size: scale,
+            color,
+            rotation: fastrand::f32() * 2.0 * std::f32::consts::PI,
+            angular_velocity: fastrand::f32() * 2.0 - 1.0,
+            life: life_time,
+            max_life: life_time,
+            texture_id: None,
+            scale,
+            mass,
+            drag,
+            friction: 0.1,
+            bounce: 0.5,
+            flags: ParticleFlags::default(),
+        };
+
+        self.particles_emitted += 1;
+        Some(particle)
     }
 
     /// Create a single particle

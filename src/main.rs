@@ -20,6 +20,7 @@ use game::{Position, Velocity, Sprite, MovementSystem, InputMovementSystem,
           PlayerInputSystem, CharacterControllerSystem, CombatSystem, DamageSystem};
 use engine::animation::{Animation, AnimationFrame, AnimationController, FrameEffect};
 use engine::particles::ParticleEmitter;
+use engine::level::{LevelGenerator, LevelConfig, GenerationAlgorithm, AlgorithmParams};
 
 /// Main application entry point
 fn main() -> Result<()> {
@@ -121,6 +122,9 @@ fn create_test_scene(engine: &mut Engine) {
     // Test particle system (commented out for now)
     // test_particle_system(engine);
     
+    // Test level generation system
+    test_level_generation_system(engine);
+    
     info!("Created test scene with game systems");
 }
 
@@ -209,10 +213,10 @@ fn test_game_systems(engine: &mut Engine) {
 /// Test the animation system
 fn test_animation_system(engine: &mut Engine) {
     // Create test animations
-    let idle_animation = Animation::new("idle".to_string())
-        .set_looping(true)
-        .set_speed(1.0)
-        .set_priority(1);
+    let mut idle_animation = Animation::new("idle".to_string());
+    idle_animation.set_looping(true);
+    idle_animation.set_speed(1.0);
+    idle_animation.set_priority(1);
 
     // Add frames to idle animation
     for i in 0..4 {
@@ -229,10 +233,10 @@ fn test_animation_system(engine: &mut Engine) {
         idle_animation.add_frame(frame);
     }
 
-    let walk_animation = Animation::new("walk".to_string())
-        .set_looping(true)
-        .set_speed(1.5)
-        .set_priority(2);
+    let mut walk_animation = Animation::new("walk".to_string());
+    walk_animation.set_looping(true);
+    walk_animation.set_speed(1.5);
+    walk_animation.set_priority(2);
 
     // Add frames to walk animation
     for i in 0..6 {
@@ -249,10 +253,10 @@ fn test_animation_system(engine: &mut Engine) {
         walk_animation.add_frame(frame);
     }
 
-    let attack_animation = Animation::new("attack".to_string())
-        .set_looping(false)
-        .set_speed(2.0)
-        .set_priority(3);
+    let mut attack_animation = Animation::new("attack".to_string());
+    attack_animation.set_looping(false);
+    attack_animation.set_speed(2.0);
+    attack_animation.set_priority(3);
 
     // Add frames to attack animation
     for i in 0..3 {
@@ -314,4 +318,391 @@ fn test_particle_system(engine: &mut Engine) {
     );
 
     log::info!("Particle system test completed. Created particle effects for {} entities", player_entities.len());
+}
+
+/// Test the level generation system
+fn test_level_generation_system(engine: &mut Engine) {
+    log::info!("Testing level generation system...");
+    
+    // Test basic level generation
+    let config = LevelConfig {
+        room_count_range: (3, 6),
+        room_size_range: (5, 12),
+        level_width: 40,
+        level_height: 40,
+        difficulty: 1,
+        biome_type: "forest".to_string(),
+        seed: Some(12345),
+    };
+    
+    // Test basic level generation
+    match engine.level_generator_mut().generate_level(config.clone()) {
+        Ok(level) => {
+            log::info!("Successfully generated basic level: {}", level.id);
+            log::info!("Level dimensions: {}x{}", level.width, level.height);
+            log::info!("Number of rooms: {}", level.rooms.len());
+            log::info!("Number of connections: {}", level.connections.len());
+            log::info!("Number of spawn points: {}", level.spawn_points.len());
+            log::info!("Biome: {}", level.biome);
+            log::info!("Difficulty: {}", level.difficulty);
+            
+            // Count different tile types
+            let mut tile_counts = std::collections::HashMap::new();
+            for x in 0..level.width as usize {
+                for y in 0..level.height as usize {
+                    let tile = level.tiles[x][y];
+                    *tile_counts.entry(tile).or_insert(0) += 1;
+                }
+            }
+            
+            log::info!("Tile distribution:");
+            for (tile, count) in tile_counts {
+                log::info!("  {:?}: {}", tile, count);
+            }
+        },
+        Err(e) => {
+            log::error!("Failed to generate basic level: {}", e);
+        }
+    }
+    
+    // Test advanced level generation
+    match engine.level_generator_mut().generate_level_advanced(config, GenerationAlgorithm::RoomBased) {
+        Ok(level) => {
+            log::info!("Successfully generated advanced level: {}", level.id);
+            log::info!("Advanced level dimensions: {}x{}", level.width, level.height);
+            log::info!("Advanced level rooms: {}", level.rooms.len());
+            log::info!("Advanced level connections: {}", level.connections.len());
+            log::info!("Advanced level spawn points: {}", level.spawn_points.len());
+            log::info!("Advanced level biome: {}", level.biome);
+            log::info!("Advanced level difficulty: {}", level.difficulty);
+            
+            // Count different tile types in advanced level
+            let mut tile_counts = std::collections::HashMap::new();
+            for x in 0..level.width as usize {
+                for y in 0..level.height as usize {
+                    let tile = level.tiles[x][y];
+                    *tile_counts.entry(tile).or_insert(0) += 1;
+                }
+            }
+            
+            log::info!("Advanced level tile distribution:");
+            for (tile, count) in tile_counts {
+                log::info!("  {:?}: {}", tile, count);
+            }
+            
+            // Test different generation algorithms
+            test_different_algorithms(engine);
+            
+            // Test multi-biome level generation
+            test_multi_biome_generation(engine);
+            
+            // Test interactive objects generation
+            test_interactive_objects_generation(engine);
+            
+            // Test background layers generation
+            test_background_layers_generation(engine);
+            
+            // Test atmospheric effects generation
+            test_atmospheric_effects_generation(engine);
+        },
+        Err(e) => {
+            log::error!("Failed to generate advanced level: {}", e);
+        }
+    }
+}
+
+/// Test different level generation algorithms
+fn test_different_algorithms(engine: &mut Engine) {
+    let config = LevelConfig {
+        room_count_range: (2, 4),
+        room_size_range: (4, 8),
+        level_width: 30,
+        level_height: 30,
+        difficulty: 1,
+        biome_type: "desert".to_string(),
+        seed: Some(54321),
+    };
+    
+    let algorithms = vec![
+        GenerationAlgorithm::RoomBased,
+        // Note: Other algorithms are placeholders for now
+    ];
+    
+    for algorithm in algorithms {
+        match engine.level_generator_mut().generate_level_advanced(config.clone(), algorithm) {
+            Ok(level) => {
+                log::info!("Successfully generated level with {:?} algorithm", algorithm);
+                log::info!("  Level ID: {}", level.id);
+                log::info!("  Rooms: {}, Connections: {}, Spawn Points: {}", 
+                          level.rooms.len(), level.connections.len(), level.spawn_points.len());
+            },
+            Err(e) => {
+                log::warn!("Failed to generate level with {:?} algorithm: {}", algorithm, e);
+            }
+        }
+    }
+}
+
+/// Test multi-biome level generation
+fn test_multi_biome_generation(engine: &mut Engine) {
+    let config = LevelConfig {
+        room_count_range: (4, 8),
+        room_size_range: (6, 12),
+        level_width: 60,
+        level_height: 40,
+        difficulty: 2,
+        biome_type: "forest".to_string(), // This will be overridden
+        seed: Some(98765),
+    };
+    
+    // Test multi-biome level with forest -> desert -> arctic transition
+    let biomes = vec![
+        "forest".to_string(),
+        "desert".to_string(),
+        "arctic".to_string(),
+    ];
+    
+    match engine.level_generator_mut().generate_multi_biome_level(config, biomes) {
+        Ok(level) => {
+            log::info!("Successfully generated multi-biome level: {}", level.id);
+            log::info!("Multi-biome level dimensions: {}x{}", level.width, level.height);
+            log::info!("Multi-biome level rooms: {}", level.rooms.len());
+            log::info!("Multi-biome level connections: {}", level.connections.len());
+            log::info!("Multi-biome level spawn points: {}", level.spawn_points.len());
+            log::info!("Multi-biome level biome: {}", level.biome);
+            log::info!("Multi-biome level difficulty: {}", level.difficulty);
+            
+            // Count different tile types in multi-biome level
+            let mut tile_counts = std::collections::HashMap::new();
+            for x in 0..level.width as usize {
+                for y in 0..level.height as usize {
+                    let tile = level.tiles[x][y];
+                    *tile_counts.entry(tile).or_insert(0) += 1;
+                }
+            }
+            
+            log::info!("Multi-biome level tile distribution:");
+            for (tile, count) in tile_counts {
+                log::info!("  {:?}: {}", tile, count);
+            }
+        },
+        Err(e) => {
+            log::error!("Failed to generate multi-biome level: {}", e);
+        }
+    }
+}
+
+/// Test interactive objects generation
+fn test_interactive_objects_generation(engine: &mut Engine) {
+    let config = LevelConfig {
+        room_count_range: (5, 10),
+        room_size_range: (8, 15),
+        level_width: 50,
+        level_height: 50,
+        difficulty: 3,
+        biome_type: "cave".to_string(),
+        seed: Some(11111),
+    };
+    
+    match engine.level_generator_mut().generate_level_with_objects(config, GenerationAlgorithm::RoomBased) {
+        Ok(level) => {
+            log::info!("Successfully generated level with interactive objects: {}", level.id);
+            log::info!("Level with objects dimensions: {}x{}", level.width, level.height);
+            log::info!("Level with objects rooms: {}", level.rooms.len());
+            log::info!("Level with objects connections: {}", level.connections.len());
+            log::info!("Level with objects spawn points: {}", level.spawn_points.len());
+            log::info!("Level with objects biome: {}", level.biome);
+            log::info!("Level with objects difficulty: {}", level.difficulty);
+            
+            // Get interactive objects
+            let interactive_objects = engine.level_generator().get_interactive_objects();
+            log::info!("Interactive objects count: {}", interactive_objects.len());
+            
+            // Count objects by type
+            let mut object_counts = std::collections::HashMap::new();
+            for obj in interactive_objects {
+                *object_counts.entry(obj.object_type).or_insert(0) += 1;
+            }
+            
+            log::info!("Interactive objects by type:");
+            for (object_type, count) in object_counts {
+                log::info!("  {:?}: {}", object_type, count);
+            }
+            
+            // Test object interaction
+            if let Some(first_object) = interactive_objects.first() {
+                log::info!("Testing interaction with object: {}", first_object.id);
+                log::info!("  Object type: {:?}", first_object.object_type);
+                log::info!("  Object position: ({}, {})", first_object.x, first_object.y);
+                log::info!("  Object state: {:?}", first_object.state);
+                log::info!("  Object health: {}/{}", first_object.health, first_object.max_health);
+                log::info!("  Object active: {}", first_object.active);
+                
+                // Test damaging the object
+                if first_object.properties.destructible {
+                    match engine.level_generator_mut().damage_interactive_object(&first_object.id, 25.0) {
+                        Ok(destroyed) => {
+                            if destroyed {
+                                log::info!("  Object destroyed!");
+                            } else {
+                                log::info!("  Object damaged but not destroyed");
+                            }
+                        },
+                        Err(e) => {
+                            log::error!("  Failed to damage object: {}", e);
+                        }
+                    }
+                }
+            }
+        },
+        Err(e) => {
+            log::error!("Failed to generate level with interactive objects: {}", e);
+        }
+    }
+}
+
+/// Test background layers generation
+fn test_background_layers_generation(engine: &mut Engine) {
+    let screen_width = 1920.0;
+    let screen_height = 1080.0;
+    
+    // Test different biomes
+    let biomes = vec!["forest", "desert", "arctic", "cave", "lava"];
+    
+    for biome in biomes {
+        match engine.level_generator_mut().create_background_layers(biome, screen_width, screen_height) {
+            Ok(_) => {
+                log::info!("Successfully created background layers for biome: {}", biome);
+                
+                // Get background layers
+                let background_layers = engine.level_generator().get_background_layers();
+                log::info!("  Background layers count: {}", background_layers.len());
+                
+                // Count layers by type
+                let mut layer_counts = std::collections::HashMap::new();
+                for layer in background_layers {
+                    *layer_counts.entry(layer.layer_type).or_insert(0) += 1;
+                }
+                
+                log::info!("  Background layers by type:");
+                for (layer_type, count) in layer_counts {
+                    log::info!("    {:?}: {}", layer_type, count);
+                }
+                
+                // Test layer properties
+                for layer in background_layers {
+                    log::info!("  Layer: {}", layer.id);
+                    log::info!("    Depth: {:.2}", layer.depth);
+                    log::info!("    Position: ({:.2}, {:.2})", layer.position.x, layer.position.y);
+                    log::info!("    Velocity: ({:.2}, {:.2})", layer.velocity.x, layer.velocity.y);
+                    log::info!("    Opacity: {:.2}", layer.opacity);
+                    log::info!("    Texture ID: {}", layer.texture_id);
+                    log::info!("    Color: [{:.2}, {:.2}, {:.2}, {:.2}]", 
+                              layer.color[0], layer.color[1], layer.color[2], layer.color[3]);
+                    log::info!("    Visible: {}", layer.visible);
+                    log::info!("    Repeat X: {}, Repeat Y: {}", layer.repeat_x, layer.repeat_y);
+                }
+                
+                // Test layer updates
+                engine.level_generator_mut().set_camera_position(glam::Vec2::new(100.0, 50.0));
+                engine.level_generator_mut().set_camera_velocity(glam::Vec2::new(10.0, 0.0));
+                engine.level_generator_mut().update_background_layers(0.016); // ~60 FPS
+                
+                log::info!("  Updated background layers with camera movement");
+                
+                // Get visible layers
+                let visible_layers = engine.level_generator().get_visible_background_layers();
+                log::info!("  Visible layers count: {}", visible_layers.len());
+            },
+            Err(e) => {
+                log::error!("Failed to create background layers for biome {}: {}", biome, e);
+            }
+        }
+    }
+}
+
+/// Test atmospheric effects generation
+fn test_atmospheric_effects_generation(engine: &mut Engine) {
+    let level_width = 100.0;
+    let level_height = 100.0;
+    
+    // Test different biomes
+    let biomes = vec!["forest", "desert", "arctic", "cave", "lava"];
+    
+    for biome in biomes {
+        match engine.level_generator_mut().create_atmospheric_effects(biome, level_width, level_height) {
+            Ok(_) => {
+                log::info!("Successfully created atmospheric effects for biome: {}", biome);
+                
+                // Get atmospheric effects
+                let atmospheric_effects = engine.level_generator().get_atmospheric_effects();
+                log::info!("  Atmospheric effects count: {}", atmospheric_effects.len());
+                
+                // Count effects by type
+                let mut effect_counts = std::collections::HashMap::new();
+                for effect in atmospheric_effects {
+                    *effect_counts.entry(effect.effect_type).or_insert(0) += 1;
+                }
+                
+                log::info!("  Atmospheric effects by type:");
+                for (effect_type, count) in effect_counts {
+                    log::info!("    {:?}: {}", effect_type, count);
+                }
+                
+                // Test effect properties
+                for effect in atmospheric_effects {
+                    log::info!("  Effect: {}", effect.id);
+                    log::info!("    Type: {:?}", effect.effect_type);
+                    log::info!("    Position: ({:.2}, {:.2})", effect.position.x, effect.position.y);
+                    log::info!("    Intensity: {:.2}", effect.intensity);
+                    log::info!("    Duration: {:.2}", effect.duration);
+                    log::info!("    Age: {:.2}", effect.age);
+                    log::info!("    Size: {:.2}", effect.size);
+                    log::info!("    Color: [{:.2}, {:.2}, {:.2}, {:.2}]", 
+                              effect.color[0], effect.color[1], effect.color[2], effect.color[3]);
+                    log::info!("    Opacity: {:.2}", effect.opacity);
+                    log::info!("    Active: {}", effect.active);
+                    log::info!("    Moving: {}, Rotating: {}, Scaling: {}, Fading: {}, Pulsing: {}", 
+                              effect.properties.moving, effect.properties.rotating, 
+                              effect.properties.scaling, effect.properties.fading, effect.properties.pulsing);
+                }
+                
+                // Test effect updates
+                engine.level_generator_mut().update_atmospheric_effects(0.016); // ~60 FPS
+                log::info!("  Updated atmospheric effects");
+                
+                // Get active effects
+                let active_effects = engine.level_generator().get_active_atmospheric_effects();
+                log::info!("  Active effects count: {}", active_effects.len());
+                
+                // Test global lighting
+                let global_lighting = engine.level_generator().get_global_lighting();
+                log::info!("  Global lighting:");
+                log::info!("    Ambient color: [{:.2}, {:.2}, {:.2}, {:.2}]", 
+                          global_lighting.ambient_color[0], global_lighting.ambient_color[1], 
+                          global_lighting.ambient_color[2], global_lighting.ambient_color[3]);
+                log::info!("    Ambient intensity: {:.2}", global_lighting.ambient_intensity);
+                log::info!("    Directional color: [{:.2}, {:.2}, {:.2}, {:.2}]", 
+                          global_lighting.directional_color[0], global_lighting.directional_color[1], 
+                          global_lighting.directional_color[2], global_lighting.directional_color[3]);
+                log::info!("    Directional intensity: {:.2}", global_lighting.directional_intensity);
+                log::info!("    Fog color: [{:.2}, {:.2}, {:.2}, {:.2}]", 
+                          global_lighting.fog_color[0], global_lighting.fog_color[1], 
+                          global_lighting.fog_color[2], global_lighting.fog_color[3]);
+                log::info!("    Fog density: {:.2}", global_lighting.fog_density);
+                
+                // Test weather system
+                let weather_system = engine.level_generator().get_weather_system();
+                log::info!("  Weather system:");
+                log::info!("    Current weather: {:?}", weather_system.current_weather);
+                log::info!("    Weather intensity: {:.2}", weather_system.weather_intensity);
+                log::info!("    Weather duration: {:.2}", weather_system.weather_duration);
+                log::info!("    Weather age: {:.2}", weather_system.weather_age);
+                log::info!("    Weather probability: {:.2}", weather_system.weather_probability);
+            },
+            Err(e) => {
+                log::error!("Failed to create atmospheric effects for biome {}: {}", biome, e);
+            }
+        }
+    }
 }

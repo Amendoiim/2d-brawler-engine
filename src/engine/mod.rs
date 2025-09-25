@@ -9,6 +9,7 @@ pub mod scene;
 pub mod asset;
 pub mod animation;
 pub mod particles;
+pub mod level;
 
 use anyhow::Result;
 use winit::{
@@ -30,6 +31,7 @@ pub struct Engine {
     asset_manager: asset::AssetManager,
     animation: animation::AnimationSystem,
     particles: particles::ParticleSystem,
+    level_generator: level::LevelGenerator,
 }
 
 impl Engine {
@@ -50,6 +52,7 @@ impl Engine {
         let asset_manager = asset::AssetManager::new()?;
         let animation = animation::AnimationSystem::new();
         let particles = particles::ParticleSystem::new();
+        let level_generator = level::LevelGenerator::new();
 
         Ok(Self {
             platform,
@@ -62,6 +65,7 @@ impl Engine {
             asset_manager,
             animation,
             particles,
+            level_generator,
         })
     }
 
@@ -122,6 +126,11 @@ impl Engine {
     /// Get mutable reference to particle system
     pub fn particles_mut(&mut self) -> &mut particles::ParticleSystem {
         &mut self.particles
+    }
+
+    /// Get mutable reference to level generator
+    pub fn level_generator_mut(&mut self) -> &mut level::LevelGenerator {
+        &mut self.level_generator
     }
 
     /// Load a scene
